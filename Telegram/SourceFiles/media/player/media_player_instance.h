@@ -72,7 +72,7 @@ public:
 
 	void play(AudioMsgId::Type type);
 	void pause(AudioMsgId::Type type);
-	void stop(AudioMsgId::Type type, bool asFinished = false);
+	void stop(AudioMsgId::Type type);
 	void playPause(AudioMsgId::Type type);
 	bool next(AudioMsgId::Type type);
 	bool previous(AudioMsgId::Type type);
@@ -108,9 +108,6 @@ public:
 		HistoryItem *item) const;
 	[[nodiscard]] View::PlaybackProgress *roundVideoPlayback(
 		HistoryItem *item) const;
-
-	[[nodiscard]] Streaming::Instance *roundVideoPreview(
-		not_null<DocumentData*> document) const;
 
 	[[nodiscard]] AudioMsgId current(AudioMsgId::Type type) const {
 		if (const auto data = getData(type)) {

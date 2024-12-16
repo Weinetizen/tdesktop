@@ -194,18 +194,16 @@ void Step::finish(const MTPUser &user, QImage &&photo) {
 
 	api().request(MTPmessages_GetDialogFilters(
 	)).done([=](const MTPmessages_DialogFilters &result) {
-		const auto &d = result.data();
-		createSession(user, photo, d.vfilters().v, d.is_tags_enabled());
+		createSession(user, photo, result.data().vfilters().v);
 	}).fail([=] {
-		createSession(user, photo, QVector<MTPDialogFilter>(), false);
+		createSession(user, photo, QVector<MTPDialogFilter>());
 	}).send();
 }
 
 void Step::createSession(
 		const MTPUser &user,
 		QImage photo,
-		const QVector<MTPDialogFilter> &filters,
-		bool tagsEnabled) {
+		const QVector<MTPDialogFilter> &filters) {
 	// Save the default language if we've suggested some other and user ignored it.
 	const auto currentId = Lang::Id();
 	const auto defaultId = Lang::DefaultLanguageId();
@@ -229,7 +227,7 @@ void Step::createSession(
 	account->local().enforceModernStorageIdBots();
 	account->local().writeMtpData();
 	auto &session = account->session();
-	session.data().chatsFilters().setPreloaded(filters, tagsEnabled);
+	session.data().chatsFilters().setPreloaded(filters);
 	if (hasFilters) {
 		session.saveSettingsDelayed();
 	}

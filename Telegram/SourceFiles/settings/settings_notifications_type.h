@@ -10,6 +10,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "settings/settings_common_session.h"
 #include "data/notify/data_notify_settings.h"
 
+namespace Data {
+enum class DefaultNotify;
+} // namespace Data
+
 namespace Settings {
 
 class NotificationsType : public AbstractSection {
@@ -35,11 +39,11 @@ private:
 };
 
 [[nodiscard]] bool NotificationsEnabledForType(
-	not_null<::Main::Session*> session,
+	not_null<Main::Session*> session,
 	Data::DefaultNotify type);
 
 [[nodiscard]] rpl::producer<bool> NotificationsEnabledForTypeValue(
-	not_null<::Main::Session*> session,
+	not_null<Main::Session*> session,
 	Data::DefaultNotify type);
 
 } // namespace Settings

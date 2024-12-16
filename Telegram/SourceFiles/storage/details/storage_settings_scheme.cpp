@@ -1059,7 +1059,9 @@ bool ReadSetting(
 			auto id = Ui::Emoji::IdFromOldKey(static_cast<uint64>(i.key()));
 			if (!id.isEmpty()) {
 				auto index = Ui::Emoji::ColorIndexFromOldKey(i.value());
-				variants.insert(id, index);
+				if (index >= 0) {
+					variants.insert(id, index);
+				}
 			}
 		}
 		Core::App().settings().setLegacyEmojiVariants(std::move(variants));

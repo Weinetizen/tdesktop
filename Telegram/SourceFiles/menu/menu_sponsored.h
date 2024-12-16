@@ -26,17 +26,14 @@ void FillSponsored(
 	not_null<Ui::RpWidget*> parent,
 	const Ui::Menu::MenuCallback &addAction,
 	std::shared_ptr<ChatHelpers::Show> show,
-	const FullMsgId &fullId,
-	bool mediaViewer,
-	bool skipAbout = false);
+	not_null<HistoryItem*> item,
+	bool mediaViewer);
 
 void ShowSponsored(
 	not_null<Ui::RpWidget*> parent,
 	std::shared_ptr<ChatHelpers::Show> show,
-	const FullMsgId &fullId);
+	not_null<HistoryItem*> item);
 
-void ShowSponsoredAbout(
-	std::shared_ptr<ChatHelpers::Show> show,
-	const FullMsgId &fullId);
+void ShowSponsoredAbout(std::shared_ptr<ChatHelpers::Show> show);
 
 } // namespace Menu

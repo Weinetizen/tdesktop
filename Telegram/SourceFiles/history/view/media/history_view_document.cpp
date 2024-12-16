@@ -543,21 +543,12 @@ QSize Document::countCurrentSize(int newWidth) {
 	if (!captioned && !hasTranscribe) {
 		auto result = File::countCurrentSize(newWidth);
 		if (isBubbleBottom()) {
-			const auto thumbedWidth = thumbedLinkMaxWidth();
-			const auto statusWidth = thumbedWidth
-				? 0
-				: st::normalFont->width(_statusText);
-			if (thumbedWidth || statusWidth) {
+			if (const auto link = thumbedLinkMaxWidth()) {
 				const auto needed = st.padding.left()
-					+ (thumbedWidth
-						? st.thumbSize + st.thumbSkip
-						: st::msgFileLayout.thumbSize
-							+ st::mediaUnreadSkip)
-					+ (thumbedWidth + statusWidth)
+					+ st.thumbSize
 					+ st.thumbSkip
-					+ (_realParent->hasUnreadMediaFlag()
-						? st::mediaUnreadSkip + st::mediaUnreadSize
-						: 0)
+					+ link
+					+ st.thumbSkip
 					+ _parent->bottomInfoFirstLineWidth()
 					+ st.padding.right();
 				if (result.width() < needed) {

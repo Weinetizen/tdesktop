@@ -149,14 +149,4 @@ private:
 [[nodiscard]] InlineListData InlineListDataFromMessage(
 	not_null<Message*> message);
 
-[[nodiscard]] ReactionId ReactionIdOfLink(const ClickHandlerPtr &link);
-
-struct ReactionCount {
-	int count = 0;
-	bool shortened = false;
-};
-[[nodiscard]] ReactionCount ReactionCountOfLink(
-	HistoryItem *item,
-	const ClickHandlerPtr &link);
-
-} // namespace HistoryView::Reactions
+} // namespace HistoryView

@@ -16,10 +16,6 @@ struct ShortInfoCover;
 struct ShortInfoBox;
 } // namespace style
 
-namespace Ui::Menu {
-struct MenuCallback;
-} // namespace Ui::Menu
-
 namespace Ui {
 class BoxContent;
 } // namespace Ui
@@ -39,7 +35,6 @@ struct PreparedShortInfoUserpic {
 	not_null<PeerData*> peer,
 	Fn<void()> open,
 	Fn<bool()> videoPaused,
-	Fn<void(Ui::Menu::MenuCallback)> menuFiller,
 	const style::ShortInfoBox *stOverride = nullptr);
 
 [[nodiscard]] object_ptr<Ui::BoxContent> PrepareShortInfoBox(

@@ -29,7 +29,6 @@ public:
 	QString title() override;
 	TextWithEntities subtitle() override;
 	rpl::producer<QString> button() override;
-	bool buttonMinistars() override;
 	QString cornerTagText() override;
 	int buttonSkip() override;
 	void draw(

@@ -192,7 +192,9 @@ std::unique_ptr<Lottie::SinglePlayer> LottieThumbnail(
 	};
 	const auto session = thumb
 		? &thumb->owner()->session()
-		: &media->owner()->session();
+		: media
+		? &media->owner()->session()
+		: nullptr;
 	return LottieCachedFromContent(
 		method,
 		baseKey,

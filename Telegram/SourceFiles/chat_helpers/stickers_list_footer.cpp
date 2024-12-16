@@ -822,7 +822,7 @@ void StickersListFooter::mousePressEvent(QMouseEvent *e) {
 	if (e->button() != Qt::LeftButton) {
 		return;
 	}
-	_iconsMousePos = e->globalPos();
+	_iconsMousePos = e ? e->globalPos() : QCursor::pos();
 	updateSelected();
 
 	if (_selected == SpecialOver::Settings) {

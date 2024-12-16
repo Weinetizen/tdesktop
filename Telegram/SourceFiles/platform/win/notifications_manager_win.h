@@ -14,6 +14,8 @@ struct ToastActivation;
 namespace Platform {
 namespace Notifications {
 
+#ifndef __MINGW32__
+
 class Manager : public Window::Notifications::NativeManager {
 public:
 	Manager(Window::Notifications::System *system);
@@ -52,6 +54,7 @@ private:
 	const std::unique_ptr<Private> _private;
 
 };
+#endif // !__MINGW32__
 
 } // namespace Notifications
 } // namespace Platform

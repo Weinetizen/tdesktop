@@ -62,8 +62,8 @@ private:
 class Controller final : public PeerListController {
 public:
 	Controller(
-		not_null<Window::SessionNavigation*> window,
-		FullMsgId itemId,
+		not_null<Window::SessionController*> window,
+		not_null<HistoryItem*> item,
 		const ReactionId &selected,
 		rpl::producer<ReactionId> switches,
 		std::shared_ptr<Api::WhoReadList> whoReadIds);
@@ -73,25 +73,8 @@ public:
 	void rowClicked(not_null<PeerListRow*> row) override;
 	void loadMoreRows() override;
 
-	std::unique_ptr<PeerListRow> createRestoredRow(
-		not_null<PeerData*> peer) override;
-
-	std::unique_ptr<PeerListState> saveState() const override;
-	void restoreState(std::unique_ptr<PeerListState> state) override;
-
 private:
 	using AllEntry = std::pair<not_null<PeerData*>, Data::ReactionId>;
-
-	struct SavedState : SavedStateBase {
-		ReactionId shownReaction;
-		base::flat_map<std::pair<PeerId, ReactionId>, uint64> idsMap;
-		uint64 idsCounter = 0;
-		std::vector<AllEntry> all;
-		QString allOffset;
-		std::vector<not_null<PeerData*>> filtered;
-		QString filteredOffset;
-		bool wasLoading = false;
-	};
 
 	void fillWhoRead();
 	void loadMore(const ReactionId &reaction);
@@ -105,15 +88,14 @@ private:
 		not_null<PeerData*> peer,
 		const ReactionId &reaction) const;
 
-	const not_null<Window::SessionNavigation*> _window;
-	const not_null<PeerData*> _peer;
-	const FullMsgId _itemId;
+	const not_null<Window::SessionController*> _window;
+	const not_null<HistoryItem*> _item;
 	const Ui::Text::CustomEmojiFactory _factory;
-	const std::shared_ptr<Api::WhoReadList> _whoReadIds;
-	const std::vector<not_null<PeerData*>> _whoRead;
 	MTP::Sender _api;
 
 	ReactionId _shownReaction;
+	std::shared_ptr<Api::WhoReadList> _whoReadIds;
+	std::vector<not_null<PeerData*>> _whoRead;
 
 	mutable base::flat_map<std::pair<PeerId, ReactionId>, uint64> _idsMap;
 	mutable uint64 _idsCounter = 0;
@@ -127,22 +109,6 @@ private:
 	mtpRequestId _loadRequestId = 0;
 
 };
-
-[[nodiscard]] std::vector<not_null<PeerData*>> ResolveWhoRead(
-		not_null<Window::SessionNavigation*> window,
-		const std::shared_ptr<Api::WhoReadList> &whoReadIds) {
-	if (!whoReadIds || whoReadIds->list.empty()) {
-		return {};
-	}
-	auto result = std::vector<not_null<PeerData*>>();
-	auto &owner = window->session().data();
-	for (const auto &peerWithDate : whoReadIds->list) {
-		if (const auto peer = owner.peerLoaded(peerWithDate.peer)) {
-			result.push_back(peer);
-		}
-	}
-	return result;
-}
 
 Row::Row(
 	uint64 id,
@@ -200,19 +166,17 @@ void Row::rightActionPaint(
 }
 
 Controller::Controller(
-	not_null<Window::SessionNavigation*> window,
-	FullMsgId itemId,
+	not_null<Window::SessionController*> window,
+	not_null<HistoryItem*> item,
 	const ReactionId &selected,
 	rpl::producer<ReactionId> switches,
 	std::shared_ptr<Api::WhoReadList> whoReadIds)
 : _window(window)
-, _peer(window->session().data().peer(itemId.peer))
-, _itemId(itemId)
+, _item(item)
 , _factory(Data::ReactedMenuFactory(&window->session()))
-, _whoReadIds(whoReadIds)
-, _whoRead(ResolveWhoRead(window, _whoReadIds))
 , _api(&window->session().mtp())
-, _shownReaction(selected) {
+, _shownReaction(selected)
+, _whoReadIds(whoReadIds) {
 	std::move(
 		switches
 	) | rpl::filter([=](const ReactionId &reaction) {
@@ -284,6 +248,14 @@ uint64 Controller::id(
 }
 
 void Controller::fillWhoRead() {
+	if (_whoReadIds && !_whoReadIds->list.empty() && _whoRead.empty()) {
+		auto &owner = _window->session().data();
+		for (const auto &peerWithDate : _whoReadIds->list) {
+			if (const auto peer = owner.peerLoaded(peerWithDate.peer)) {
+				_whoRead.push_back(peer);
+			}
+		}
+	}
 	for (const auto &peer : _whoRead) {
 		appendRow(peer, ReactionId());
 	}
@@ -297,60 +269,6 @@ void Controller::loadMoreRows() {
 		return;
 	}
 	loadMore(_shownReaction);
-}
-
-std::unique_ptr<PeerListRow> Controller::createRestoredRow(
-		not_null<PeerData*> peer) {
-	if (_shownReaction.emoji() == u"read"_q) {
-		return createRow(peer, Data::ReactionId());
-	} else if (_shownReaction.empty()) {
-		const auto i = ranges::find(_all, peer, &AllEntry::first);
-		const auto reaction = (i != end(_all)) ? i->second : _shownReaction;
-		return createRow(peer, reaction);
-	}
-	return createRow(peer, _shownReaction);
-}
-
-std::unique_ptr<PeerListState> Controller::saveState() const {
-	auto result = PeerListController::saveState();
-
-	auto my = std::make_unique<SavedState>();
-	my->shownReaction = _shownReaction;
-	my->idsMap = _idsMap;
-	my->idsCounter = _idsCounter;
-	my->all = _all;
-	my->allOffset = _allOffset;
-	my->filtered = _filtered;
-	my->filteredOffset = _filteredOffset;
-	my->wasLoading = (_loadRequestId != 0);
-	result->controllerState = std::move(my);
-	return result;
-}
-
-void Controller::restoreState(std::unique_ptr<PeerListState> state) {
-	auto typeErasedState = state
-		? state->controllerState.get()
-		: nullptr;
-	if (const auto my = dynamic_cast<SavedState*>(typeErasedState)) {
-		if (const auto requestId = base::take(_loadRequestId)) {
-			_api.request(requestId).cancel();
-		}
-		_shownReaction = my->shownReaction;
-		_idsMap = std::move(my->idsMap);
-		_idsCounter = my->idsCounter;
-		_all = std::move(my->all);
-		_allOffset = std::move(my->allOffset);
-		_filtered = std::move(my->filtered);
-		_filteredOffset = std::move(my->filteredOffset);
-		if (my->wasLoading) {
-			loadMoreRows();
-		}
-		PeerListController::restoreState(std::move(state));
-		if (delegate()->peerListFullRowsCount()) {
-			setDescriptionText(QString());
-			delegate()->peerListRefreshRows();
-		}
-	}
 }
 
 void Controller::loadMore(const ReactionId &reaction) {
@@ -372,8 +290,8 @@ void Controller::loadMore(const ReactionId &reaction) {
 		| (reaction.empty() ? Flag(0) : Flag::f_reaction);
 	_loadRequestId = _api.request(MTPmessages_GetMessageReactionsList(
 		MTP_flags(flags),
-		_peer->input,
-		MTP_int(_itemId.msg),
+		_item->history()->peer->input,
+		MTP_int(_item->id),
 		Data::ReactionToMTP(reaction),
 		MTP_string(offset),
 		MTP_int(offset.isEmpty() ? kPerPageFirst : kPerPage)
@@ -414,7 +332,7 @@ void Controller::rowClicked(not_null<PeerListRow*> row) {
 	const auto window = _window;
 	const auto peer = row->peer();
 	crl::on_main(window, [=] {
-		window->showPeerInfo(peer);
+		window->show(PrepareShortInfoBox(peer, window));
 	});
 }
 
@@ -435,75 +353,72 @@ std::unique_ptr<PeerListRow> Controller::createRow(
 		_factory,
 		Data::ReactionEntityData(reaction),
 		[=](Row *row) { delegate()->peerListUpdateRow(row); },
-		[=] { return _window->parentController()->isGifPausedAtLeastFor(
+		[=] { return _window->isGifPausedAtLeastFor(
 			Window::GifPauseReason::Layer); });
 }
 
 } // namespace
 
-Data::ReactionId DefaultSelectedTab(
-		not_null<HistoryItem*> item,
-		std::shared_ptr<Api::WhoReadList> whoReadIds) {
-	return DefaultSelectedTab(item, {}, std::move(whoReadIds));
-}
-
-Data::ReactionId DefaultSelectedTab(
+object_ptr<Ui::BoxContent> FullListBox(
+		not_null<Window::SessionController*> window,
 		not_null<HistoryItem*> item,
 		Data::ReactionId selected,
 		std::shared_ptr<Api::WhoReadList> whoReadIds) {
-	const auto proj = &Data::MessageReaction::id;
-	if (!ranges::contains(item->reactions(), selected, proj)) {
+	Expects(IsServerMsgId(item->id));
+
+	if (!ranges::contains(
+			item->reactions(),
+			selected,
+			&Data::MessageReaction::id)) {
 		selected = {};
 	}
-	return (selected.empty() && whoReadIds && !whoReadIds->list.empty())
-		? Data::ReactionId{ u"read"_q }
-		: selected;
-}
-
-not_null<Tabs*> CreateReactionsTabs(
-		not_null<QWidget*> parent,
-		not_null<Window::SessionNavigation*> window,
-		FullMsgId itemId,
-		Data::ReactionId selected,
-		std::shared_ptr<Api::WhoReadList> whoReadIds) {
-	const auto item = window->session().data().message(itemId);
-	auto map = item
-		? item->reactions()
-		: std::vector<Data::MessageReaction>();
-	if (whoReadIds && !whoReadIds->list.empty()) {
-		map.push_back({
-			.id = Data::ReactionId{ u"read"_q },
-			.count = int(whoReadIds->list.size()),
-		});
+	if (selected.empty() && whoReadIds && !whoReadIds->list.empty()) {
+		selected = Data::ReactionId{ u"read"_q };
 	}
-	return CreateTabs(
-		parent,
-		Data::ReactedMenuFactory(&window->session()),
-		[=] { return window->parentController()->isGifPausedAtLeastFor(
-			Window::GifPauseReason::Layer); },
-		map,
-		selected,
-		whoReadIds ? whoReadIds->type : Ui::WhoReadType::Reacted);
-}
-
-PreparedFullList FullListController(
-		not_null<Window::SessionNavigation*> window,
-		FullMsgId itemId,
-		Data::ReactionId selected,
-		std::shared_ptr<Api::WhoReadList> whoReadIds) {
-	Expects(IsServerMsgId(itemId.msg));
-
-	const auto tab = std::make_shared<
+	const auto tabRequests = std::make_shared<
 		rpl::event_stream<Data::ReactionId>>();
-	return {
-		.controller = std::make_unique<Controller>(
-			window,
-			itemId,
+	const auto initBox = [=](not_null<PeerListBox*> box) {
+		box->setNoContentMargin(true);
+
+		auto map = item->reactions();
+		if (whoReadIds && !whoReadIds->list.empty()) {
+			map.push_back({
+				.id = Data::ReactionId{ u"read"_q },
+				.count = int(whoReadIds->list.size()),
+			});
+		}
+		const auto tabs = CreateTabs(
+			box,
+			Data::ReactedMenuFactory(&item->history()->session()),
+			[=] { return window->isGifPausedAtLeastFor(
+				Window::GifPauseReason::Layer); },
+			map,
 			selected,
-			tab->events(),
-			whoReadIds),
-		.switchTab = [=](Data::ReactionId id) { tab->fire_copy(id); },
+			whoReadIds ? whoReadIds->type : Ui::WhoReadType::Reacted);
+		tabs->changes(
+		) | rpl::start_to_stream(*tabRequests, box->lifetime());
+
+		box->widthValue(
+		) | rpl::start_with_next([=](int width) {
+			tabs->resizeToWidth(width);
+			tabs->move(0, 0);
+		}, box->lifetime());
+		tabs->heightValue(
+		) | rpl::start_with_next([=](int height) {
+			box->setAddedTopScrollSkip(height);
+		}, box->lifetime());
+		box->addButton(tr::lng_close(), [=] {
+			box->closeBox();
+		});
 	};
+	return Box<PeerListBox>(
+		std::make_unique<Controller>(
+			window,
+			item,
+			selected,
+			tabRequests->events(),
+			whoReadIds),
+		initBox);
 }
 
 } // namespace HistoryView::Reactions

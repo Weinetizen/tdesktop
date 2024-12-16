@@ -27,12 +27,6 @@ ColoredMiniStars::ColoredMiniStars(
 	type) {
 }
 
-ColoredMiniStars::ColoredMiniStars(
-	Fn<void(const QRect &)> update,
-	MiniStars::Type type)
-: _ministars(update, true, type) {
-}
-
 void ColoredMiniStars::setSize(const QSize &size) {
 	_frame = QImage(
 		size * style::DevicePixelRatio(),

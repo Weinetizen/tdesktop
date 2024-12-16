@@ -18,9 +18,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "media/player/media_player_instance.h"
 #include "media/audio/media_audio.h"
 #include "storage/localstorage.h"
-#include "ui/text/text_utilities.h"
-#include "window/window_controller.h"
 #include "window/window_session_controller.h"
+#include "window/window_controller.h"
 #include "platform/mac/touchbar/mac_touchbar_manager.h"
 #include "platform/platform_specific.h"
 #include "platform/platform_notifications_manager.h"
@@ -365,7 +364,7 @@ void MainWindow::createGlobalMenu() {
 		}
 	};
 
-	auto main = psMainMenu.addMenu(u"Telegram"_q);
+	auto main = psMainMenu.addMenu(u"Teamgram"_q);
 	{
 		auto callback = [=] {
 			ensureWindowShown();
@@ -375,7 +374,7 @@ void MainWindow::createGlobalMenu() {
 			tr::lng_mac_menu_about_telegram(
 				tr::now,
 				lt_telegram,
-				u"Telegram"_q),
+				u"Teamgram"_q),
 			std::move(callback))
 		->setMenuRole(QAction::AboutQtRole);
 	}
@@ -520,9 +519,7 @@ void MainWindow::createGlobalMenu() {
 
 	edit->addSeparator();
 	edit->addAction(
-		tr::lng_mac_menu_emoji_and_symbols(
-			tr::now,
-			Ui::Text::FixAmpersandInAction),
+		tr::lng_mac_menu_emoji_and_symbols(tr::now).replace('&', "&&"),
 		this,
 		[] { [NSApp orderFrontCharacterPalette:nil]; },
 		QKeySequence(Qt::MetaModifier | Qt::ControlModifier | Qt::Key_Space)

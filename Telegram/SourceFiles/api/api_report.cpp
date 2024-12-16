@@ -40,20 +40,29 @@ MTPreportReason ReasonToTL(const Ui::ReportReason &reason) {
 
 } // namespace
 
-void SendPhotoReport(
+void SendReport(
 		std::shared_ptr<Ui::Show> show,
 		not_null<PeerData*> peer,
 		Ui::ReportReason reason,
 		const QString &comment,
-		not_null<PhotoData*> photo) {
-	peer->session().api().request(MTPaccount_ReportProfilePhoto(
-		peer->input,
-		photo->mtpInput(),
-		ReasonToTL(reason),
-		MTP_string(comment)
-	)).done([=] {
+		std::variant<v::null_t, not_null<PhotoData*>> data) {
+	auto done = [=] {
 		show->showToast(tr::lng_report_thanks(tr::now));
-	}).send();
+	};
+	v::match(data, [&](v::null_t) {
+		peer->session().api().request(MTPaccount_ReportPeer(
+			peer->input,
+			ReasonToTL(reason),
+			MTP_string(comment)
+		)).done(std::move(done)).send();
+	}, [&](not_null<PhotoData*> photo) {
+		peer->session().api().request(MTPaccount_ReportProfilePhoto(
+			peer->input,
+			photo->mtpInput(),
+			ReasonToTL(reason),
+			MTP_string(comment)
+		)).done(std::move(done)).send();
+	});
 }
 
 auto CreateReportMessagesOrStoriesCallback(

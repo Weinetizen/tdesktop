@@ -457,7 +457,7 @@ if customRunCommand:
 stage('patches', """
     git clone https://github.com/desktop-app/patches.git
     cd patches
-    git checkout cf3b896e00
+    git checkout 412f65c296
 """)
 
 stage('msys64', """
@@ -979,7 +979,7 @@ mac:
 """)
 
 stage('libheif', """
-    git clone -b v1.18.2 https://github.com/strukturag/libheif.git
+    git clone -b v1.17.6 https://github.com/strukturag/libheif.git
     cd libheif
 win:
     %THIRDPARTY_DIR%\\msys64\\usr\\bin\\sed.exe -i 's/LIBHEIF_EXPORTS/LIBDE265_STATIC_BUILD/g' libheif/CMakeLists.txt
@@ -1020,18 +1020,21 @@ mac:
         -D WITH_SvtEnc=OFF \\
         -D WITH_RAV1E=OFF \\
         -D WITH_DAV1D=ON \\
+        -D DAV1D_INCLUDE_DIR=USED_PREFIX/include/ \\
+        -D DAV1D_LIBRARY=$USED_PREFIX/lib/libdav1d.a \\
         -D WITH_LIBDE265=ON \\
         -D LIBDE265_INCLUDE_DIR=$USED_PREFIX/include/ \\
         -D LIBDE265_LIBRARY=$USED_PREFIX/lib/libde265.a \\
         -D LIBSHARPYUV_INCLUDE_DIR=$USED_PREFIX/include/webp/ \\
         -D LIBSHARPYUV_LIBRARY=$USED_PREFIX/lib/libsharpyuv.a \\
-        -D WITH_EXAMPLES=OFF
+        -D WITH_EXAMPLES=OFF \\
+        -D WITH_GDK_PIXBUF=OFF
     cmake --build . --config MinSizeRel $MAKE_THREADS_CNT
     cmake --install . --config MinSizeRel
 """)
 
 stage('libjxl', """
-    git clone -b v0.11.1 --recursive --shallow-submodules https://github.com/libjxl/libjxl.git
+    git clone -b v0.10.3 --recursive --shallow-submodules https://github.com/libjxl/libjxl.git
     cd libjxl
 """ + setVar("cmake_defines", """
     -DBUILD_SHARED_LIBS=OFF
@@ -1217,14 +1220,13 @@ depends:yasm/yasm
         --arch="$arch" \
         --extra-cflags="$MIN_VER -arch $arch $UNGUARDED -DCONFIG_SAFE_BITSTREAM_READER=1 -I$USED_PREFIX/include" \
         --extra-cxxflags="$MIN_VER -arch $arch $UNGUARDED -DCONFIG_SAFE_BITSTREAM_READER=1 -I$USED_PREFIX/include" \
-        --extra-ldflags="$MIN_VER -arch $arch $USED_PREFIX/lib/libopus.a -lc++" \
+        --extra-ldflags="$MIN_VER -arch $arch $USED_PREFIX/lib/libopus.a" \
         --disable-programs \
         --disable-doc \
         --disable-network \
         --disable-everything \
         --enable-protocol=file \
         --enable-libdav1d \
-        --enable-libopenh264 \
         --enable-libopus \
         --enable-libvpx \
         --enable-hwaccel=h264_videotoolbox \
@@ -1302,9 +1304,7 @@ depends:yasm/yasm
         --enable-decoder=wmav1 \
         --enable-decoder=wmav2 \
         --enable-decoder=wmavoice \
-        --enable-encoder=aac \
         --enable-encoder=libopus \
-        --enable-encoder=libopenh264 \
         --enable-filter=atempo \
         --enable-parser=aac \
         --enable-parser=aac_latm \
@@ -1327,7 +1327,6 @@ depends:yasm/yasm
         --enable-demuxer=mp3 \
         --enable-demuxer=ogg \
         --enable-demuxer=wav \
-        --enable-muxer=mp4 \
         --enable-muxer=ogg \
         --enable-muxer=opus
     }
@@ -1692,7 +1691,6 @@ win:
         -static ^
         -static-runtime ^
         -feature-c++20 ^
-        -no-sbom ^
         -openssl linked ^
         -system-webp ^
         -system-zlib ^

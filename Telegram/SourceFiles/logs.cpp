@@ -335,7 +335,11 @@ void SetDebugEnabled(bool enabled) {
 }
 
 bool DebugEnabled() {
+#if defined _DEBUG
+	return true;
+#else
 	return DebugModeEnabled;
+#endif
 }
 
 bool WritingEntry() {

@@ -31,12 +31,10 @@ struct Key;
 } // namespace Storage
 
 namespace Media {
-struct VideoQuality;
-} // namespace Media
-
-namespace Media::Streaming {
+namespace Streaming {
 class Loader;
-} // namespace Media::Streaming
+} // namespace Streaming
+} // namespace Media
 
 namespace Data {
 class Session;
@@ -94,11 +92,6 @@ struct VoiceData : public DocumentAdditionalData {
 	char wavemax = 0;
 };
 
-struct VideoData : public DocumentAdditionalData {
-	QString codec;
-	std::vector<not_null<DocumentData*>> qualities;
-};
-
 using RoundData = VoiceData;
 
 namespace Serialize {
@@ -115,16 +108,8 @@ public:
 
 	void setattributes(
 		const QVector<MTPDocumentAttribute> &attributes);
-	void setVideoQualities(const QVector<MTPDocument> &list);
 
 	void automaticLoadSettingsChanged();
-	void setVideoQualities(std::vector<not_null<DocumentData*>> qualities);
-	[[nodiscard]] int resolveVideoQuality() const;
-	[[nodiscard]] auto resolveQualities(HistoryItem *context) const
-		-> const std::vector<not_null<DocumentData*>> &;
-	[[nodiscard]] not_null<DocumentData*> chooseQuality(
-		HistoryItem *context,
-		Media::VideoQuality request);
 
 	[[nodiscard]] bool loading() const;
 	[[nodiscard]] QString loadingFilePath() const;
@@ -176,8 +161,6 @@ public:
 	[[nodiscard]] const VoiceData *voice() const;
 	[[nodiscard]] RoundData *round();
 	[[nodiscard]] const RoundData *round() const;
-	[[nodiscard]] VideoData *video();
-	[[nodiscard]] const VideoData *video() const;
 
 	void forceIsStreamedAnimation();
 	[[nodiscard]] bool isVoiceMessage() const;
@@ -206,7 +189,6 @@ public:
 	[[nodiscard]] bool isPremiumSticker() const;
 	[[nodiscard]] bool isPremiumEmoji() const;
 	[[nodiscard]] bool emojiUsesTextColor() const;
-	void overrideEmojiUsesTextColor(bool value);
 
 	[[nodiscard]] bool hasThumbnail() const;
 	[[nodiscard]] bool thumbnailLoading() const;

@@ -43,7 +43,9 @@ notifyClose: IconButton {
 
 	rippleAreaPosition: point(5px, 5px);
 	rippleAreaSize: 20px;
-	ripple: defaultRippleAnimationBgOver;
+	ripple: RippleAnimation(defaultRippleAnimation) {
+		color: windowBgOver;
+	}
 }
 notifyItemTop: 12px;
 notifyTextLeft: 12px;

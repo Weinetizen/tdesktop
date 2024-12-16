@@ -76,10 +76,7 @@ public:
 		return Window::SectionActionResult::Fallback;
 	}
 
-	bool searchInChatEmbedded(
-		QString query,
-		Dialogs::Key chat,
-		PeerData *searchFrom = nullptr) override;
+	bool searchInChatEmbedded(Dialogs::Key chat, QString query) override;
 
 	// Float player interface.
 	bool floatPlayerHandleWheelEvent(QEvent *e) override;

@@ -456,8 +456,6 @@ void Form::requestForm() {
 			const auto amount = tlPrices.empty()
 				? 0
 				: tlPrices.front().data().vamount().v;
-			const auto subscriptionPeriod
-				= data.vinvoice().data().vsubscription_period().value_or(0);
 			if (currency != ::Ui::kCreditsCurrency || !amount) {
 				using Type = Error::Type;
 				_updates.fire(Error{ Type::Form, u"Bad Stars Form."_q });
@@ -469,7 +467,6 @@ void Form::requestForm() {
 				.credits = amount,
 				.currency = currency,
 				.amount = amount,
-				.subscriptionPeriod = subscriptionPeriod,
 			};
 			const auto formData = CreditsFormData{
 				.id = _id,
@@ -611,7 +608,7 @@ void Form::processReceipt(const MTPDpayments_paymentReceiptStars &data) {
 				ImageLocation())
 			: nullptr,
 		.peerId = peerFromUser(data.vbot_id().v),
-		.credits = StarsAmount(data.vtotal_amount().v),
+		.credits = data.vtotal_amount().v,
 		.date = data.vdate().v,
 	};
 	_updates.fire(CreditsReceiptReady{ .data = receiptData });
@@ -1166,7 +1163,7 @@ void Form::validateCard(
 	}
 	auto configuration = Stripe::PaymentConfiguration{
 		.publishableKey = method.publishableKey,
-		.companyName = "Telegram",
+		.companyName = "Teamgram",
 	};
 	_stripe = std::make_unique<Stripe::APIClient>(std::move(configuration));
 	auto card = Stripe::CardParams{

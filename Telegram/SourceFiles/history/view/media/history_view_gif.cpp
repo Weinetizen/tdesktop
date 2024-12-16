@@ -36,7 +36,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/view/media/history_view_media_spoiler.h"
 #include "window/window_session_controller.h"
 #include "core/application.h" // Application::showDocument.
-#include "core/core_settings.h"
 #include "ui/chat/attach/attach_prepare.h"
 #include "ui/chat/chat_style.h"
 #include "ui/image/image.h"
@@ -110,10 +109,8 @@ constexpr auto kMaxInlineArea = 1920 * 1080;
 
 struct Gif::Streamed {
 	Streamed(
-		not_null<DocumentData*> chosen,
 		std::shared_ptr<::Media::Streaming::Document> shared,
 		Fn<void()> waitingCallback);
-	const not_null<DocumentData*> chosen;
 	::Media::Streaming::Instance instance;
 	::Media::Streaming::FrameRequest frozenRequest;
 	QImage frozenFrame;
@@ -121,11 +118,9 @@ struct Gif::Streamed {
 };
 
 Gif::Streamed::Streamed(
-	not_null<DocumentData*> chosen,
 	std::shared_ptr<::Media::Streaming::Document> shared,
 	Fn<void()> waitingCallback)
-: chosen(chosen)
-, instance(std::move(shared), std::move(waitingCallback)) {
+: instance(std::move(shared), std::move(waitingCallback)) {
 }
 
 [[nodiscard]] bool IsHiddenRoundMessage(not_null<Element*> parent) {
@@ -806,7 +801,7 @@ void Gif::draw(Painter &p, const PaintContext &context) const {
 				p,
 				context,
 				fullRight,
-				fullBottom - st::msgDateImgDelta,
+				fullBottom,
 				2 * paintx + paintw,
 				(unwrapped
 					? InfoDisplayType::Background
@@ -1853,21 +1848,13 @@ void Gif::playAnimation(bool autoplay) {
 }
 
 void Gif::createStreamedPlayer() {
-	const auto quality = Core::App().settings().videoQuality();
-	const auto chosen = _data->chooseQuality(_realParent, quality);
-	if (_streamed && _streamed->chosen == chosen) {
-		return;
-	}
 	auto shared = _data->owner().streaming().sharedDocument(
-		chosen,
 		_data,
-		_realParent,
 		_realParent->fullId());
 	if (!shared) {
 		return;
 	}
 	setStreamed(std::make_unique<Streamed>(
-		chosen,
 		std::move(shared),
 		[=] { repaintStreamedContent(); }));
 
@@ -1876,20 +1863,6 @@ void Gif::createStreamedPlayer() {
 		handleStreamingUpdate(std::move(update));
 	}, [=](::Media::Streaming::Error &&error) {
 		handleStreamingError(std::move(error));
-	}, _streamed->instance.lifetime());
-
-	_streamed->instance.switchQualityRequests(
-	) | rpl::start_with_next([=](int quality) {
-		auto now = Core::App().settings().videoQuality();
-		if (now.manual || now.height == quality) {
-			return;
-		}
-		Core::App().settings().setVideoQuality({
-			.manual = 0,
-			.height = uint32(quality),
-		});
-		Core::App().saveSettingsDelayed();
-		createStreamedPlayer();
 	}, _streamed->instance.lifetime());
 
 	if (_streamed->instance.ready()) {
@@ -1939,15 +1912,14 @@ void Gif::handleStreamingUpdate(::Media::Streaming::Update &&update) {
 
 	v::match(update.data, [&](Information &update) {
 		streamingReady(std::move(update));
-	}, [](PreloadedVideo) {
-	}, [&](UpdateVideo) {
+	}, [&](const PreloadedVideo &update) {
+	}, [&](const UpdateVideo &update) {
 		repaintStreamedContent();
-	}, [](PreloadedAudio) {
-	}, [](UpdateAudio) {
-	}, [](WaitingForData) {
-	}, [](SpeedEstimate) {
-	}, [](MutedByOther) {
-	}, [](Finished) {
+	}, [&](const PreloadedAudio &update) {
+	}, [&](const UpdateAudio &update) {
+	}, [&](const WaitingForData &update) {
+	}, [&](MutedByOther) {
+	}, [&](Finished) {
 	});
 }
 
@@ -2010,12 +1982,10 @@ bool Gif::dataLoaded() const {
 }
 
 bool Gif::needInfoDisplay() const {
-	const auto item = _parent->data();
-	if (item->isFakeAboutView()) {
+	if (_parent->data()->isFakeAboutView()) {
 		return false;
 	}
-	return item->isSending()
-		|| item->awaitingVideoProcessing()
+	return _parent->data()->isSending()
 		|| _data->uploading()
 		|| _parent->isUnderCursor()
 		|| (_parent->delegate()->elementContext() == Context::ChatPreview)

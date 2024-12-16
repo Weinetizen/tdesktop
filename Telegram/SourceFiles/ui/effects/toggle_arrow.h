@@ -9,15 +9,11 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 namespace Ui {
 
-class RpWidget;
-
 [[nodiscard]] QPainterPath ToggleUpDownArrowPath(
 	float64 x,
 	float64 y,
 	float64 size,
 	float64 fourStrokes,
 	float64 progress);
-
-void AddToggleUpDownArrowToMoreButton(not_null<Ui::RpWidget*> parent);
 
 } // namespace Ui

@@ -19,7 +19,11 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 namespace Info::Statistics {
 
 Memento::Memento(not_null<Controller*> controller)
-: ContentMemento(controller->statisticsTag()) {
+: ContentMemento(Tag{
+	controller->statisticsPeer(),
+	controller->statisticsContextId(),
+	controller->statisticsStoryId(),
+}) {
 }
 
 Memento::Memento(not_null<PeerData*> peer, FullMsgId contextId)
@@ -61,9 +65,9 @@ Widget::Widget(
 	object_ptr<InnerWidget>(
 		this,
 		controller,
-		controller->statisticsTag().peer,
-		controller->statisticsTag().contextId,
-		controller->statisticsTag().storyId))) {
+		controller->statisticsPeer(),
+		controller->statisticsContextId(),
+		controller->statisticsStoryId()))) {
 	_inner->showRequests(
 	) | rpl::start_with_next([=](InnerWidget::ShowRequest request) {
 		if (request.history) {
@@ -75,7 +79,7 @@ Widget::Widget(
 			controller->showPeerInfo(request.info);
 		} else if (request.messageStatistic || request.storyStatistic) {
 			controller->showSection(Make(
-				controller->statisticsTag().peer,
+				controller->statisticsPeer(),
 				request.messageStatistic,
 				request.storyStatistic));
 		} else if (const auto &s = request.story) {
@@ -88,7 +92,7 @@ Widget::Widget(
 		}
 	}, _inner->lifetime());
 	_inner->scrollToRequests(
-	) | rpl::start_with_next([this](const Ui::ScrollToRequest &request) {
+	) | rpl::start_with_next([=](const Ui::ScrollToRequest &request) {
 		scrollTo(request);
 	}, _inner->lifetime());
 }
@@ -98,9 +102,9 @@ bool Widget::showInternal(not_null<ContentMemento*> memento) {
 }
 
 rpl::producer<QString> Widget::title() {
-	return controller()->statisticsTag().contextId
+	return controller()->statisticsContextId()
 		? tr::lng_stats_message_title()
-		: controller()->statisticsTag().storyId
+		: controller()->statisticsStoryId()
 		? tr::lng_stats_story_title()
 		: tr::lng_stats_title();
 }

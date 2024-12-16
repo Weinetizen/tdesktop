@@ -1539,8 +1539,7 @@ bool ReadPaletteValues(const QByteArray &content, Fn<bool(QLatin1String name, QL
 			mix(bg.blue(), shadow.blue()))));
 	}
 	return {
-		.bodyBg = st::windowBg->c,
-		.titleBg = QColor(0, 0, 0, 0),
+		.opaqueBg = st::windowBg->c,
 		.scrollBg = st::scrollBg->c,
 		.scrollBgOver = st::scrollBgOver->c,
 		.scrollBarBg = st::scrollBarBg->c,

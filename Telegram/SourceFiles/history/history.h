@@ -180,7 +180,6 @@ public:
 	not_null<HistoryItem*> addNewLocalMessage(
 		HistoryItemCommonFields &&fields,
 		not_null<GameData*> game);
-	not_null<HistoryItem*> addNewLocalMessage(not_null<HistoryItem*> item);
 
 	not_null<HistoryItem*> addSponsoredMessage(
 		MsgId id,

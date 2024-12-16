@@ -91,8 +91,7 @@ ThemeDocument::ThemeDocument(
 : File(parent, parent->data())
 , _data(document)
 , _serviceWidth(serviceWidth) {
-	Expects(params.has_value()
-		|| (_data && (_data->hasThumbnail() || _data->isTheme())));
+	Expects(params.has_value() || _data->hasThumbnail() || _data->isTheme());
 
 	if (params) {
 		_background = params->backgroundColors();

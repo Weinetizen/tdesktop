@@ -16,7 +16,11 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 namespace Info::ChannelEarn {
 
 Memento::Memento(not_null<Controller*> controller)
-: ContentMemento(controller->statisticsTag()) {
+: ContentMemento(Info::Statistics::Tag{
+	controller->statisticsPeer(),
+	{},
+	{},
+}) {
 }
 
 Memento::Memento(not_null<PeerData*> peer)
@@ -54,7 +58,7 @@ Widget::Widget(
 	object_ptr<InnerWidget>(
 		this,
 		controller,
-		controller->statisticsTag().peer))) {
+		controller->statisticsPeer()))) {
 	_inner->showRequests(
 	) | rpl::start_with_next([=](InnerWidget::ShowRequest request) {
 	}, _inner->lifetime());
@@ -69,7 +73,7 @@ not_null<PeerData*> Widget::peer() const {
 }
 
 bool Widget::showInternal(not_null<ContentMemento*> memento) {
-	return (memento->statisticsTag().peer == peer());
+	return (memento->statisticsPeer() == peer());
 }
 
 rpl::producer<QString> Widget::title() {

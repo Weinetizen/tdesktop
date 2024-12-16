@@ -27,11 +27,13 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 namespace {
 
-[[nodiscard]] object_ptr<Ui::BoxContent> ReportPhoto(
+[[nodiscard]] object_ptr<Ui::BoxContent> Report(
 		not_null<PeerData*> peer,
-		not_null<PhotoData*> photo,
+		std::variant<v::null_t, not_null<PhotoData*>> data,
 		const style::ReportBox *stOverride) {
-	const auto source = [&] {
+	const auto source = v::match(data, [](const MessageIdsList &ids) {
+		return Ui::ReportSource::Message;
+	}, [&](not_null<PhotoData*> photo) {
 		return peer->isUser()
 			? (photo->hasVideo()
 				? Ui::ReportSource::ProfileVideo
@@ -43,14 +45,19 @@ namespace {
 			: (photo->hasVideo()
 				? Ui::ReportSource::ChannelVideo
 				: Ui::ReportSource::ChannelPhoto);
-	}();
+	}, [&](StoryId id) {
+		return Ui::ReportSource::Story;
+	}, [](v::null_t) {
+		Unexpected("Bad source report.");
+		return Ui::ReportSource::Bot;
+	});
 	const auto st = stOverride ? stOverride : &st::defaultReportBox;
 	return Box([=](not_null<Ui::GenericBox*> box) {
 		const auto show = box->uiShow();
 		Ui::ReportReasonBox(box, *st, source, [=](Ui::ReportReason reason) {
 			show->showBox(Box([=](not_null<Ui::GenericBox*> box) {
 				Ui::ReportDetailsBox(box, *st, [=](const QString &text) {
-					Api::SendPhotoReport(show, peer, reason, text, photo);
+					Api::SendReport(show, peer, reason, text, data);
 					show->hideLayer();
 				});
 			}));
@@ -63,7 +70,7 @@ namespace {
 object_ptr<Ui::BoxContent> ReportProfilePhotoBox(
 		not_null<PeerData*> peer,
 		not_null<PhotoData*> photo) {
-	return ReportPhoto(peer, photo, nullptr);
+	return Report(peer, photo, nullptr);
 }
 
 void ShowReportMessageBox(
@@ -79,6 +86,7 @@ void ShowReportMessageBox(
 	auto performRequest = [=](
 			const auto &repeatRequest,
 			Data::ReportInput reportInput) -> void {
+		constexpr auto kToastDuration = crl::time(4000);
 		report(reportInput, [=](const Api::ReportResult &result) {
 			if (!result.error.isEmpty()) {
 				if (result.error == u"MESSAGE_ID_REQUIRED"_q) {
@@ -198,7 +206,6 @@ void ShowReportMessageBox(
 					}
 				}));
 			} else if (result.successful) {
-				constexpr auto kToastDuration = crl::time(4000);
 				show->showToast(
 					tr::lng_report_thanks(tr::now),
 					kToastDuration);

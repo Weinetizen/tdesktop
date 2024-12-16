@@ -9,8 +9,13 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "data/data_abstract_structure.h"
 #include "data/data_forum.h"
+#include "data/data_photo.h"
+#include "data/data_document.h"
 #include "data/data_message_reactions.h"
 #include "data/data_session.h"
+#include "data/data_stories.h"
+#include "data/data_user.h"
+#include "data/data_channel.h"
 #include "data/data_download_manager.h"
 #include "base/battery_saving.h"
 #include "base/event_filter.h"
@@ -28,12 +33,15 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "core/ui_integration.h"
 #include "chat_helpers/emoji_keywords.h"
 #include "chat_helpers/stickers_emoji_image_loader.h"
+#include "base/qt/qt_common_adapters.h"
 #include "base/platform/base_platform_global_shortcuts.h"
 #include "base/platform/base_platform_url_scheme.h"
 #include "base/platform/base_platform_last_input.h"
 #include "base/platform/base_platform_info.h"
 #include "platform/platform_specific.h"
 #include "platform/platform_integration.h"
+#include "mainwindow.h"
+#include "dialogs/dialogs_entry.h"
 #include "history/history.h"
 #include "apiwrap.h"
 #include "api/api_updates.h"
@@ -42,6 +50,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "iv/iv_delegate_impl.h"
 #include "iv/iv_instance.h"
 #include "iv/iv_data.h"
+#include "lang/lang_file_parser.h"
 #include "lang/lang_translator.h"
 #include "lang/lang_cloud_manager.h"
 #include "lang/lang_hardcoded.h"
@@ -49,6 +58,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "inline_bots/bot_attach_web_view.h"
 #include "mainwidget.h"
 #include "tray.h"
+#include "core/file_utilities.h"
 #include "core/click_handler_types.h" // ClickHandlerContext.
 #include "core/crash_reports.h"
 #include "main/main_account.h"
@@ -58,6 +68,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "media/view/media_view_open_common.h"
 #include "mtproto/mtproto_dc_options.h"
 #include "mtproto/mtproto_config.h"
+#include "mtproto/mtp_instance.h"
+#include "media/audio/media_audio.h"
 #include "media/audio/media_audio_track.h"
 #include "media/player/media_player_instance.h"
 #include "media/player/media_player_float.h"
@@ -65,12 +77,18 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "media/system_media_controls_manager.h"
 #include "window/notifications_manager.h"
 #include "window/themes/window_theme.h"
+#include "window/window_lock_widgets.h"
+#include "history/history_location_manager.h"
 #include "ui/widgets/tooltip.h"
 #include "ui/gl/gl_detection.h"
+#include "ui/image/image.h"
 #include "ui/text/text_options.h"
+#include "ui/emoji_config.h"
+#include "ui/effects/animations.h"
 #include "ui/effects/spoiler_mess.h"
 #include "ui/cached_round_corners.h"
 #include "ui/power_saving.h"
+#include "storage/serialize_common.h"
 #include "storage/storage_domain.h"
 #include "storage/storage_databases.h"
 #include "storage/localstorage.h"
@@ -83,6 +101,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "boxes/abstract_box.h"
 #include "base/qthelp_regex.h"
 #include "base/qthelp_url.h"
+#include "boxes/connection_box.h"
 #include "boxes/premium_limits_box.h"
 #include "ui/boxes/confirm_box.h"
 #include "styles/style_window.h"
@@ -676,7 +695,7 @@ bool Application::eventFilter(QObject *object, QEvent *e) {
 			if (const auto file = event->file(); !file.isEmpty()) {
 				_filesToOpen.append(file);
 				_fileOpenTimer.callOnce(kFileOpenTimeoutMs);
-			} else if (event->url().scheme() == u"tg"_q
+			} else if (event->url().scheme() == u"tg2"_q
 				|| event->url().scheme() == u"tonsite"_q) {
 				const auto url = QString::fromUtf8(
 					event->url().toEncoded().trimmed());
@@ -1093,7 +1112,7 @@ void Application::checkStartUrl() {
 }
 
 bool Application::openLocalUrl(const QString &url, QVariant context) {
-	return openCustomUrl("tg://", LocalUrlHandlers(), url, context);
+	return openCustomUrl("tg2://", LocalUrlHandlers(), url, context);
 }
 
 bool Application::openInternalUrl(const QString &url, QVariant context) {
@@ -1813,7 +1832,7 @@ void Application::RegisterUrlScheme() {
 		.executable = Platform::ExecutablePathForShortcuts(),
 		.arguments = arguments,
 		.protocol = u"tg"_q,
-		.protocolName = u"Telegram Link"_q,
+		.protocolName = u"Teamgram Link"_q,
 		.shortAppName = u"tdesktop"_q,
 		.longAppName = QCoreApplication::applicationName(),
 		.displayAppName = AppName.utf16(),

@@ -19,7 +19,6 @@ public:
 	enum class Type {
 		MonoStars,
 		BiStars,
-		SlowStars,
 	};
 
 	MiniStars(

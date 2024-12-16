@@ -993,12 +993,7 @@ void Panel::paint(QRect clip) {
 
 bool Panel::handleClose() const {
 	if (_call) {
-		if (_call->state() == Call::State::WaitingUserConfirmation
-			|| _call->state() == Call::State::Busy) {
-			_call->hangup();
-		} else {
-			window()->hide();
-		}
+		window()->hide();
 		return true;
 	}
 	return false;
@@ -1033,7 +1028,6 @@ void Panel::stateChanged(State state) {
 			_startVideo = base::make_unique_q<Ui::CallButton>(
 				widget(),
 				st::callStartVideo);
-			_startVideo->show();
 			_startVideo->setText(tr::lng_call_start_video());
 			_startVideo->clicks() | rpl::map_to(true) | rpl::start_to_stream(
 				_startOutgoingRequests,

@@ -66,9 +66,6 @@ public:
 	void addToHistory(
 		not_null<History*> history,
 		HistoryItemCommonFields &&fields) const;
-	[[nodiscard]] not_null<HistoryItem*> makeMessage(
-		not_null<History*> history,
-		HistoryItemCommonFields &&fields) const;
 	QString getErrorOnSend(not_null<History*> history) const;
 
 	// interface for Layout:: usage

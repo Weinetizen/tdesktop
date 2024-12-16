@@ -1404,6 +1404,10 @@ void Session::forgetPassportCredentials() {
 	_passportCredentials = nullptr;
 }
 
+QString Session::nameSortKey(const QString &name) const {
+	return TextUtilities::RemoveAccents(name).toLower();
+}
+
 void Session::setupMigrationViewer() {
 	session().changes().peerUpdates(
 		PeerUpdate::Flag::Migration
@@ -1951,19 +1955,6 @@ void Session::notifyPinnedDialogsOrderUpdated() {
 
 rpl::producer<> Session::pinnedDialogsOrderUpdated() const {
 	return _pinnedDialogsOrderUpdated.events();
-}
-
-Session::CreditsSubsRebuilderPtr Session::createCreditsSubsRebuilder() {
-	if (auto result = activeCreditsSubsRebuilder()) {
-		return result;
-	}
-	auto result = std::make_shared<CreditsSubsRebuilder>();
-	_creditsSubsRebuilder = result;
-	return result;
-}
-
-Session::CreditsSubsRebuilderPtr Session::activeCreditsSubsRebuilder() const {
-	return _creditsSubsRebuilder.lock();
 }
 
 void Session::registerHeavyViewPart(not_null<ViewElement*> view) {
@@ -3148,24 +3139,17 @@ not_null<DocumentData*> Session::document(DocumentId id) {
 	return i->second.get();
 }
 
-not_null<DocumentData*> Session::processDocument(
-		const MTPDocument &data,
-		const MTPVector<MTPDocument> *qualities) {
+not_null<DocumentData*> Session::processDocument(const MTPDocument &data) {
 	return data.match([&](const MTPDdocument &data) {
-		return processDocument(data, qualities);
+		return processDocument(data);
 	}, [&](const MTPDdocumentEmpty &data) {
 		return document(data.vid().v);
 	});
 }
 
-not_null<DocumentData*> Session::processDocument(
-		const MTPDdocument &data,
-		const MTPVector<MTPDocument> *qualities) {
+not_null<DocumentData*> Session::processDocument(const MTPDdocument &data) {
 	const auto result = document(data.vid().v);
 	documentApplyFields(result, data);
-	if (qualities) {
-		result->setVideoQualities(qualities->v);
-	}
 	return result;
 }
 
@@ -4576,7 +4560,7 @@ void Session::serviceNotification(
 				| MTPDuser::Flag::f_verified),
 			MTP_long(peerToUser(PeerData::kServiceNotificationsId).bare),
 			MTPlong(), // access_hash
-			MTP_string("Telegram"),
+			MTP_string("Teamgram"),
 			MTPstring(), // last_name
 			MTPstring(), // username
 			MTP_string("42777"),
@@ -4820,22 +4804,6 @@ void Session::viewTagsChanged(
 			_viewsByTag.erase(i);
 		}
 	}
-}
-
-void Session::sentToScheduled(SentToScheduled value) {
-	_sentToScheduled.fire(std::move(value));
-}
-
-rpl::producer<SentToScheduled> Session::sentToScheduled() const {
-	return _sentToScheduled.events();
-}
-
-void Session::sentFromScheduled(SentFromScheduled value) {
-	_sentFromScheduled.fire(std::move(value));
-}
-
-rpl::producer<SentFromScheduled> Session::sentFromScheduled() const {
-	return _sentFromScheduled.events();
 }
 
 void Session::clearLocalStorage() {

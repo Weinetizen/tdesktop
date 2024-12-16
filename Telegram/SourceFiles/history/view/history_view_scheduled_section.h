@@ -21,10 +21,6 @@ namespace ChatHelpers {
 class Show;
 } // namespace ChatHelpers
 
-namespace Data {
-struct SentFromScheduled;
-} // namespace Data
-
 namespace SendMenu {
 struct Details;
 } // namespace SendMenu
@@ -41,7 +37,6 @@ class PlainShadow;
 class FlatButton;
 struct PreparedList;
 class SendFilesWay;
-class ImportantTooltip;
 } // namespace Ui
 
 namespace Profile {
@@ -51,14 +46,6 @@ class BackButton;
 namespace InlineBots {
 class Result;
 } // namespace InlineBots
-
-namespace HistoryView::Controls {
-struct VoiceToSend;
-} // namespace HistoryView::Controls
-
-namespace Window {
-class SessionController;
-} // namespace Window
 
 namespace HistoryView {
 
@@ -208,12 +195,6 @@ private:
 		Data::MessagePosition position,
 		FullMsgId originId = {});
 
-	void initProcessingVideoView(not_null<Element*> view);
-	void checkProcessingVideoTooltip(int visibleTop, int visibleBottom);
-	void showProcessingVideoTooltip();
-	void updateProcessingVideoTooltipPosition();
-	void clearProcessingVideoTracking(bool fast);
-
 	void setupComposeControls();
 
 	void setupDragArea();
@@ -226,9 +207,14 @@ private:
 		Api::SendOptions options) const;
 	void send();
 	void send(Api::SendOptions options);
-	void sendVoice(const Controls::VoiceToSend &data);
 	void sendVoice(
-		const Controls::VoiceToSend &data,
+		QByteArray bytes,
+		VoiceWaveform waveform,
+		crl::time duration);
+	void sendVoice(
+		QByteArray bytes,
+		VoiceWaveform waveform,
+		crl::time duration,
 		Api::SendOptions options);
 	void edit(
 		not_null<HistoryItem*> item,
@@ -292,16 +278,7 @@ private:
 	std::unique_ptr<ComposeControls> _composeControls;
 	bool _skipScrollEvent = false;
 
-	Data::MessagePosition _processingVideoPosition;
-	base::weak_ptr<Element> _processingVideoView;
-	rpl::lifetime _processingVideoLifetime;
-
 	std::unique_ptr<HistoryView::StickerToast> _stickerToast;
-	std::unique_ptr<Ui::ImportantTooltip> _processingVideoTooltip;
-	base::Timer _processingVideoTipTimer;
-	bool _processingVideoUpdateScheduled = false;
-	bool _processingVideoTooltipShown = false;
-	bool _processingVideoCanShow = false;
 
 	CornerButtons _cornerButtons;
 
@@ -312,9 +289,7 @@ private:
 
 class ScheduledMemento final : public Window::SectionMemento {
 public:
-	ScheduledMemento(
-		not_null<History*> history,
-		MsgId sentToScheduledId = 0);
+	ScheduledMemento(not_null<History*> history);
 	ScheduledMemento(not_null<Data::ForumTopic*> forumTopic);
 
 	object_ptr<Window::SectionWidget> createWidget(
@@ -323,29 +298,19 @@ public:
 		Window::Column column,
 		const QRect &geometry) override;
 
-	[[nodiscard]] not_null<History*> getHistory() const {
+	not_null<History*> getHistory() const {
 		return _history;
 	}
 
-	[[nodiscard]] not_null<ListMemento*> list() {
+	not_null<ListMemento*> list() {
 		return &_list;
-	}
-
-	[[nodiscard]] MsgId sentToScheduledId() const {
-		return _sentToScheduledId;
 	}
 
 private:
 	const not_null<History*> _history;
 	const Data::ForumTopic *_forumTopic;
 	ListMemento _list;
-	MsgId _sentToScheduledId = 0;
 
 };
-
-bool ShowScheduledVideoPublished(
-	not_null<Window::SessionController*> controller,
-	const Data::SentFromScheduled &info,
-	Fn<void()> hidden = nullptr);
 
 } // namespace HistoryView

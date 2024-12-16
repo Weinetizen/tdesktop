@@ -33,7 +33,6 @@ public:
 
 	// Parts will be sent from the main thread.
 	[[nodiscard]] rpl::producer<LoadedPart> parts() const override;
-	[[nodiscard]] rpl::producer<SpeedEstimate> speedEstimate() const override;
 
 	void attachDownloader(
 		not_null<Storage::StreamedFileDownloader*> downloader) override;

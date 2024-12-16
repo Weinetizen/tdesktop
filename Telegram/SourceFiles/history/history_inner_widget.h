@@ -499,7 +499,6 @@ private:
 	HistoryItem *_dragStateItem = nullptr;
 	CursorState _mouseCursorState = CursorState();
 	uint16 _mouseTextSymbol = 0;
-	bool _dragStateUserpic = false;
 	bool _pressWasInactive = false;
 	bool _recountedAfterPendingResizedItems = false;
 	bool _useCornerReaction = false;
@@ -553,5 +552,3 @@ private:
 	ClickHandlerPtr _scrollDateLink;
 
 };
-
-[[nodiscard]] bool CanSendReply(not_null<const HistoryItem*> item);

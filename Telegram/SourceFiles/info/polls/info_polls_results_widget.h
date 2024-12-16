@@ -12,7 +12,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 struct PeerListState;
 
-namespace Info::Polls {
+namespace Info {
+namespace Polls {
 
 class InnerWidget;
 
@@ -67,4 +68,5 @@ private:
 
 };
 
-} // namespace Info::Polls
+} // namespace Polls
+} // namespace Info

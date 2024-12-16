@@ -46,26 +46,17 @@ QString MinorPart(EarnInt value) {
 	return result.chopped(zeroCount);
 }
 
-QString ToUsd(
-		Data::EarnInt value,
-		float64 rate,
-		int afterFloat) {
-	return ToUsd(StarsAmount(value), rate, afterFloat);
-}
-
-QString ToUsd(
-		StarsAmount value,
-		float64 rate,
-		int afterFloat) {
+QString ToUsd(EarnInt value, float64 rate) {
 	constexpr auto kApproximately = QChar(0x2248);
 
-	const auto result = int64(base::SafeRound(value.value() * rate));
+	const auto result = value
+		/ float64(Data::kEarnMultiplier)
+		* rate
+		* Data::kEarnMultiplier;
 	return QString(kApproximately)
 		+ QChar('$')
 		+ MajorPart(result)
-		+ ((afterFloat > 0)
-			? MinorPart(result).left(afterFloat)
-			: MinorPart(result));
+		+ MinorPart(result);
 }
 
 } // namespace Info::ChannelEarn

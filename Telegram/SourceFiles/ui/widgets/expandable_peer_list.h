@@ -18,7 +18,6 @@ class VerticalLayout;
 
 struct ExpandablePeerListController final {
 	struct Data final {
-		rpl::producer<base::flat_map<PeerId, int>> messagesCounts = nullptr;
 		Participants participants;
 		std::vector<PeerId> checked;
 		bool skipSingle = false;

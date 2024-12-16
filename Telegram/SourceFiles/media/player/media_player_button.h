@@ -9,7 +9,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "ui/effects/animations.h"
 #include "ui/widgets/buttons.h"
-#include "ui/rect_part.h"
 
 #include <QtGui/QFontMetrics>
 
@@ -88,7 +87,7 @@ public:
 		return _st;
 	}
 
-	void setSpeed(float64 speed);
+	void setSpeed(float64 speed, anim::type animated = anim::type::normal);
 
 private:
 	void paintEvent(QPaintEvent *e) override;
@@ -99,44 +98,6 @@ private:
 	const style::MediaSpeedButton &_st;
 	SpeedButtonLayout _layout;
 	bool _isDefault = false;
-
-};
-
-class SettingsButton final : public Ui::RippleButton {
-public:
-	SettingsButton(QWidget *parent, const style::MediaSpeedButton &st);
-
-	[[nodiscard]] const style::MediaSpeedButton &st() const {
-		return _st;
-	}
-
-	void setSpeed(float64 speed);
-	void setQuality(int quality);
-	void setActive(bool active);
-
-private:
-	void paintEvent(QPaintEvent *e) override;
-
-	QPoint prepareRippleStartPosition() const override;
-	QImage prepareRippleMask() const override;
-
-	void onStateChanged(State was, StateChangeSource source) override;
-
-	void paintBadge(
-		QPainter &p,
-		const QString &text,
-		RectPart origin,
-		QColor color);
-	void prepareFrame();
-
-	const style::MediaSpeedButton &_st;
-	Ui::Animations::Simple _activeAnimation;
-	Ui::Animations::Simple _overAnimation;
-	QImage _frameCache;
-	float _speed = 1.;
-	int _quality = 0;
-	bool _isDefaultSpeed = false;
-	bool _active = false;
 
 };
 

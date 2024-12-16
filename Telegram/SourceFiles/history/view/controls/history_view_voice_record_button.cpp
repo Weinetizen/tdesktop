@@ -137,14 +137,10 @@ void VoiceRecordButton::init() {
 			const auto state = *currentState;
 			const auto icon = (state == Type::Send)
 				? st::historySendIcon
-				: (state == Type::Record)
-				? st::historyRecordVoiceActive
-				: st::historyRecordRoundActive;
+				: st::historyRecordVoiceActive;
 			const auto position = (state == Type::Send)
 				? st::historyRecordSendIconPosition
-				: (state == Type::Record)
-				? QPoint(0, 0)
-				: st::historyRecordRoundIconPosition;
+				: QPoint(0, 0);
 			icon.paint(
 				p,
 				-icon.width() / 2 + position.x(),

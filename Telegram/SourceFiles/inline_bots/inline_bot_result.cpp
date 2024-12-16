@@ -378,20 +378,14 @@ bool Result::hasThumbDisplay() const {
 void Result::addToHistory(
 		not_null<History*> history,
 		HistoryItemCommonFields &&fields) const {
-	history->addNewLocalMessage(makeMessage(history, std::move(fields)));
-}
-
-not_null<HistoryItem*> Result::makeMessage(
-		not_null<History*> history,
-		HistoryItemCommonFields &&fields) const {
-	fields.flags |= MessageFlag::FromInlineBot | MessageFlag::Local;
+	fields.flags |= MessageFlag::FromInlineBot;
 	if (_replyMarkup) {
 		fields.markup = *_replyMarkup;
 		if (!fields.markup.isNull()) {
 			fields.flags |= MessageFlag::HasReplyMarkup;
 		}
 	}
-	return sendData->makeMessage(this, history, std::move(fields));
+	sendData->addToHistory(this, history, std::move(fields));
 }
 
 QString Result::getErrorOnSend(not_null<History*> history) const {

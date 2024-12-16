@@ -7,7 +7,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #pragma once
 
-#include "base/timer.h"
 #include "media/streaming/media_streaming_loader.h"
 #include "mtproto/sender.h"
 #include "data/data_file_origin.h"
@@ -37,19 +36,12 @@ public:
 
 	// Parts will be sent from the main thread.
 	[[nodiscard]] rpl::producer<LoadedPart> parts() const override;
-	[[nodiscard]] rpl::producer<SpeedEstimate> speedEstimate() const override;
 
 	void attachDownloader(
 		not_null<Storage::StreamedFileDownloader*> downloader) override;
 	void clearAttachedDownloader() override;
 
 private:
-	struct StatsEntry {
-		crl::time start = 0;
-		crl::time end = 0;
-		int64 offset = 0;
-	};
-
 	bool readyToRequest() const override;
 	int64 takeNextRequestOffset() override;
 	bool feedPart(int64 offset, const QByteArray &bytes) override;
@@ -58,8 +50,6 @@ private:
 	void cancelForOffset(int64 offset);
 	void addToQueueWithPriority();
 
-	void checkStats();
-
 	const int64 _size = 0;
 	int _priority = 0;
 
@@ -67,11 +57,6 @@ private:
 
 	PriorityQueue _requested;
 	rpl::event_stream<LoadedPart> _parts;
-	rpl::event_stream<SpeedEstimate> _speedEstimate;
-
-	std::vector<StatsEntry> _stats;
-	crl::time _firstRequestStart = 0;
-	base::Timer _statsTimer;
 
 	Storage::StreamedFileDownloader *_downloader = nullptr;
 

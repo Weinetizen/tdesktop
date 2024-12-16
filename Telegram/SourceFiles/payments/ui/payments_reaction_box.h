@@ -36,7 +36,7 @@ struct PaidReactionBoxArgs {
 
 	QString channel;
 	Fn<rpl::producer<TextWithContext>(rpl::producer<int> amount)> submit;
-	rpl::producer<StarsAmount> balanceValue;
+	rpl::producer<uint64> balanceValue;
 	Fn<void(int, bool)> send;
 };
 

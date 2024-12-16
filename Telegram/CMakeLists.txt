@@ -112,8 +112,6 @@ PRIVATE
     api/api_bot.h
     api/api_chat_filters.cpp
     api/api_chat_filters.h
-    api/api_chat_filters_remove_manager.cpp
-    api/api_chat_filters_remove_manager.h
     api/api_chat_invite.cpp
     api/api_chat_invite.h
     api/api_chat_links.cpp
@@ -294,8 +292,6 @@ PRIVATE
     boxes/peer_list_box.h
     boxes/peer_list_controllers.cpp
     boxes/peer_list_controllers.h
-    boxes/peer_list_widgets.cpp
-    boxes/peer_list_widgets.h
     boxes/peer_lists_box.cpp
     boxes/peer_lists_box.h
     boxes/passcode_box.cpp
@@ -322,6 +318,8 @@ PRIVATE
     boxes/send_gif_with_caption_box.h
     boxes/send_files_box.cpp
     boxes/send_files_box.h
+    boxes/sessions_box.cpp
+    boxes/sessions_box.h
     boxes/share_box.cpp
     boxes/share_box.h
     boxes/star_gift_box.cpp
@@ -468,7 +466,6 @@ PRIVATE
     core/sandbox.h
     core/shortcuts.cpp
     core/shortcuts.h
-    core/stars_amount.h
     core/ui_integration.cpp
     core/ui_integration.h
     core/update_checker.cpp
@@ -639,8 +636,6 @@ PRIVATE
     data/data_thread.h
     data/data_types.cpp
     data/data_types.h
-    data/data_unread_value.cpp
-    data/data_unread_value.h
     data/data_user.cpp
     data/data_user.h
     data/data_user_photos.cpp
@@ -918,12 +913,6 @@ PRIVATE
     info/bot/earn/info_bot_earn_list.h
     info/bot/earn/info_bot_earn_widget.cpp
     info/bot/earn/info_bot_earn_widget.h
-    info/bot/starref/info_bot_starref_common.cpp
-    info/bot/starref/info_bot_starref_common.h
-    info/bot/starref/info_bot_starref_join_widget.cpp
-    info/bot/starref/info_bot_starref_join_widget.h
-    info/bot/starref/info_bot_starref_setup_widget.cpp
-    info/bot/starref/info_bot_starref_setup_widget.h
     info/channel_statistics/boosts/create_giveaway_box.cpp
     info/channel_statistics/boosts/create_giveaway_box.h
     info/channel_statistics/boosts/giveaway/giveaway_list_controllers.cpp
@@ -993,10 +982,6 @@ PRIVATE
     info/profile/info_profile_values.h
     info/profile/info_profile_widget.cpp
     info/profile/info_profile_widget.h
-    info/reactions_list/info_reactions_list_widget.cpp
-    info/reactions_list/info_reactions_list_widget.h
-    info/requests_list/info_requests_list_widget.cpp
-    info/requests_list/info_requests_list_widget.h
     info/saved/info_saved_sublists_widget.cpp
     info/saved/info_saved_sublists_widget.h
     info/settings/info_settings_widget.cpp
@@ -1010,7 +995,6 @@ PRIVATE
     info/statistics/info_statistics_list_controllers.h
     info/statistics/info_statistics_recent_message.cpp
     info/statistics/info_statistics_recent_message.h
-    info/statistics/info_statistics_tag.h
     info/statistics/info_statistics_widget.cpp
     info/statistics/info_statistics_widget.h
     info/stories/info_stories_inner_widget.cpp
@@ -1047,10 +1031,6 @@ PRIVATE
     info/info_wrap_widget.h
     inline_bots/bot_attach_web_view.cpp
     inline_bots/bot_attach_web_view.h
-    inline_bots/inline_bot_confirm_prepared.cpp
-    inline_bots/inline_bot_confirm_prepared.h
-    inline_bots/inline_bot_downloads.cpp
-    inline_bots/inline_bot_downloads.h
     inline_bots/inline_bot_layout_internal.cpp
     inline_bots/inline_bot_layout_internal.h
     inline_bots/inline_bot_layout_item.cpp
@@ -1182,8 +1162,6 @@ PRIVATE
     media/streaming/media_streaming_player.h
     media/streaming/media_streaming_reader.cpp
     media/streaming/media_streaming_reader.h
-    media/streaming/media_streaming_round_preview.cpp
-    media/streaming/media_streaming_round_preview.h
     media/streaming/media_streaming_utility.cpp
     media/streaming/media_streaming_utility.h
     media/streaming/media_streaming_video_track.cpp
@@ -1410,8 +1388,6 @@ PRIVATE
     settings/cloud_password/settings_cloud_password_manage.h
     settings/cloud_password/settings_cloud_password_start.cpp
     settings/cloud_password/settings_cloud_password_start.h
-    settings/settings_active_sessions.cpp
-    settings/settings_active_sessions.h
     settings/settings_advanced.cpp
     settings/settings_advanced.h
     settings/settings_blocked_peers.cpp
@@ -1525,8 +1501,6 @@ PRIVATE
     ui/chat/choose_send_as.h
     ui/chat/choose_theme_controller.cpp
     ui/chat/choose_theme_controller.h
-    ui/chat/sponsored_message_bar.cpp
-    ui/chat/sponsored_message_bar.h
     ui/controls/emoji_button_factory.cpp
     ui/controls/emoji_button_factory.h
     ui/controls/location_picker.cpp
@@ -1558,10 +1532,6 @@ PRIVATE
     ui/widgets/expandable_peer_list.h
     ui/widgets/label_with_custom_emoji.cpp
     ui/widgets/label_with_custom_emoji.h
-    ui/widgets/chat_filters_tabs_strip.cpp
-    ui/widgets/chat_filters_tabs_strip.h
-    ui/widgets/peer_bubble.cpp
-    ui/widgets/peer_bubble.h
     ui/countryinput.cpp
     ui/countryinput.h
     ui/dynamic_thumbnails.cpp
@@ -1573,6 +1543,8 @@ PRIVATE
     ui/item_text_options.cpp
     ui/item_text_options.h
     ui/resize_area.h
+    ui/search_field_controller.cpp
+    ui/search_field_controller.h
     ui/unread_badge.cpp
     ui/unread_badge.h
     window/main_window.cpp
@@ -1821,9 +1793,9 @@ else()
     endif()
     set(bundle_entitlements "Telegram.entitlements")
     if (LINUX AND DESKTOP_APP_USE_PACKAGED)
-        set(output_name "telegram-desktop")
+        set(output_name "teamgram-desktop")
     else()
-        set(output_name "Telegram")
+        set(output_name "Teamgram")
     endif()
 endif()
 
@@ -1863,13 +1835,13 @@ target_compile_definitions(Telegram
 PRIVATE
     TDESKTOP_API_ID=${TDESKTOP_API_ID}
     TDESKTOP_API_HASH=${TDESKTOP_API_HASH}
-    G_LOG_DOMAIN="Telegram"
+    G_LOG_DOMAIN="Teamgram"
 )
 
 if (APPLE
     OR "${CMAKE_GENERATOR}" STREQUAL "Ninja Multi-Config"
     OR NOT CMAKE_EXECUTABLE_SUFFIX STREQUAL ""
-    OR NOT "${output_name}" STREQUAL "Telegram")
+    OR NOT "${output_name}" STREQUAL "Teamgram")
     set(output_folder ${CMAKE_BINARY_DIR})
 else()
     set(output_folder ${CMAKE_BINARY_DIR}/bin)
@@ -1877,7 +1849,7 @@ endif()
 
 set_target_properties(Telegram PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${output_folder})
 
-if (MSVC)
+if (WIN32 AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     target_link_libraries(Telegram
     PRIVATE
         delayimp
@@ -1974,7 +1946,7 @@ if (NOT DESKTOP_APP_DISABLE_AUTOUPDATE AND NOT build_macstore AND NOT build_wins
             base/platform/win/base_windows_safe_library.h
         )
         target_include_directories(Updater PRIVATE ${lib_base_loc})
-        if (MSVC)
+        if (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
             target_link_libraries(Updater
             PRIVATE
                 delayimp

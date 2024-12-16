@@ -279,9 +279,7 @@ echo Done!
 if %BuildUWP% neq 0 (
   cd "%HomePath%"
 
-  if %BuildARM% equ 0 (
-    mkdir "%ReleasePath%\AppX\modules\%Platform%\d3d"
-  )
+  mkdir "%ReleasePath%\AppX\modules\%Platform%\d3d"
   xcopy "Resources\uwp\AppX\*" "%ReleasePath%\AppX\" /E
   set "ResourcePath=%ReleasePath%\AppX\AppxManifest.xml"
   call :repl "Argument= (ProcessorArchitecture=)&quot;ARCHITECTURE&quot;/ $1&quot;%Platform%&quot;" "Filename=!ResourcePath!" || goto error
@@ -290,9 +288,7 @@ if %BuildUWP% neq 0 (
 
   xcopy "%ReleasePath%\%BinaryName%.exe" "%ReleasePath%\AppX\"
   xcopy "%ReleasePath%\StartupTask.exe" "%ReleasePath%\AppX\"
-  if %BuildARM% equ 0 (
-    xcopy "%ReleasePath%\modules\%Platform%\d3d\d3dcompiler_47.dll" "%ReleasePath%\AppX\modules\%Platform%\d3d\"
-  )
+  xcopy "%ReleasePath%\modules\%Platform%\d3d\d3dcompiler_47.dll" "%ReleasePath%\AppX\modules\%Platform%\d3d\"
 
   MakeAppx.exe pack /d "%ReleasePath%\AppX" /l /p ..\out\Release\%BinaryName%.%Platform%.appx
   if %errorlevel% neq 0 goto error

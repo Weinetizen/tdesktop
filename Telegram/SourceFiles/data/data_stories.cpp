@@ -62,9 +62,7 @@ using UpdateFlag = StoryUpdate::Flag;
 	}, [&](const MTPDmessageMediaDocument &data)
 		-> std::optional<StoryMedia> {
 		if (const auto document = data.vdocument()) {
-			const auto result = owner->processDocument(
-				*document,
-				data.valt_documents());
+			const auto result = owner->processDocument(*document);
 			if (!result->isNull()
 				&& (result->isGifv() || result->isVideoFile())) {
 				result->setStoryMedia(true);

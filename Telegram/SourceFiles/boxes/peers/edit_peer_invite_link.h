@@ -16,10 +16,6 @@ namespace Api {
 struct InviteLink;
 } // namespace Api
 
-namespace Data {
-class Thread;
-} // namespace Data
-
 namespace Main {
 class Session;
 } // namespace Main
@@ -35,14 +31,7 @@ class BoxContent;
 void AddSinglePeerRow(
 	not_null<Ui::VerticalLayout*> container,
 	not_null<PeerData*> peer,
-	rpl::producer<QString> status,
-	Fn<void()> clicked = nullptr);
-
-void AddSinglePeerRow(
-	not_null<Ui::VerticalLayout*> container,
-	not_null<Data::Thread*> thread,
-	rpl::producer<QString> status,
-	Fn<void()> clicked = nullptr);
+	rpl::producer<QString> status);
 
 void AddPermanentLinkBlock(
 	std::shared_ptr<Ui::Show> show,

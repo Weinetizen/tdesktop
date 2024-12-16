@@ -772,13 +772,10 @@ std::optional<StarGift> FromTL(
 	return StarGift{
 		.id = uint64(data.vid().v),
 		.stars = int64(data.vstars().v),
-		.starsConverted = int64(data.vconvert_stars().v),
+		.convertStars = int64(data.vconvert_stars().v),
 		.document = document,
 		.limitedLeft = remaining.value_or_empty(),
 		.limitedCount = total.value_or_empty(),
-		.firstSaleDate = data.vfirst_sale_date().value_or_empty(),
-		.lastSaleDate = data.vlast_sale_date().value_or_empty(),
-		.birthday = data.is_birthday(),
 	};
 }
 
@@ -792,7 +789,7 @@ std::optional<UserStarGift> FromTL(
 		return {};
 	}
 	return UserStarGift{
-		.info = std::move(*parsed),
+		.gift = std::move(*parsed),
 		.message = (data.vmessage()
 			? TextWithEntities{
 				.text = qs(data.vmessage()->data().vtext()),
@@ -801,7 +798,7 @@ std::optional<UserStarGift> FromTL(
 					data.vmessage()->data().ventities().v),
 			}
 			: TextWithEntities()),
-		.starsConverted = int64(data.vconvert_stars().value_or_empty()),
+		.convertStars = int64(data.vconvert_stars().value_or_empty()),
 		.fromId = (data.vfrom_id()
 			? peerFromUser(data.vfrom_id()->v)
 			: PeerId()),

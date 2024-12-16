@@ -29,7 +29,6 @@ void MediaEditManager::start(
 		std::optional<bool> invertCaption) {
 	const auto media = item->media();
 	if (!media) {
-		cancel();
 		return;
 	}
 	_item = item;

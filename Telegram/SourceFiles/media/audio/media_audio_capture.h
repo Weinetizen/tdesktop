@@ -7,8 +7,9 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #pragma once
 
-#include <QtCore/QThread>
 #include <QtCore/QTimer>
+
+struct AVFrame;
 
 namespace Media {
 namespace Capture {
@@ -16,23 +17,6 @@ namespace Capture {
 struct Update {
 	int samples = 0;
 	ushort level = 0;
-
-	bool finished = false;
-};
-
-enum class Error : uchar {
-	Other,
-	AudioInit,
-	VideoInit,
-	AudioTimeout,
-	VideoTimeout,
-	Encoding,
-};
-
-struct Chunk {
-	crl::time finished = 0;
-	QByteArray samples;
-	int frequency = 0;
 };
 
 struct Result;
@@ -50,7 +34,7 @@ public:
 		return _available;
 	}
 
-	[[nodiscard]] rpl::producer<Update, Error> updated() const {
+	[[nodiscard]] rpl::producer<Update, rpl::empty_error> updated() const {
 		return _updates.events();
 	}
 
@@ -61,9 +45,9 @@ public:
 		return _started.changes();
 	}
 
-	void start(Fn<void(Chunk)> externalProcessing = nullptr);
+	void start();
 	void stop(Fn<void(Result&&)> callback = nullptr);
-	void pause(bool value, Fn<void(Result&&)> callback = nullptr);
+	void pause(bool value, Fn<void(Result&&)> callback);
 
 private:
 	class Inner;
@@ -71,7 +55,7 @@ private:
 
 	bool _available = false;
 	rpl::variable<bool> _started = false;
-	rpl::event_stream<Update, Error> _updates;
+	rpl::event_stream<Update, rpl::empty_error> _updates;
 	QThread _thread;
 	std::unique_ptr<Inner> _inner;
 

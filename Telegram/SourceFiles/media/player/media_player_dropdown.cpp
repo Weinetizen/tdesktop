@@ -177,8 +177,7 @@ void FillSpeedMenu(
 		not_null<Ui::Menu::Menu*> menu,
 		const style::MediaSpeedMenu &st,
 		rpl::producer<float64> value,
-		Fn<void(float64)> callback,
-		bool onlySlider) {
+		Fn<void(float64)> callback) {
 	auto slider = base::make_unique_q<SpeedSliderItem>(
 		menu,
 		st,
@@ -199,11 +198,6 @@ void FillSpeedMenu(
 	));
 
 	menu->addAction(std::move(slider));
-
-	if (onlySlider) {
-		return;
-	}
-
 	menu->addSeparator(&st.dropdown.menu.separator);
 
 	struct SpeedPoint {
@@ -558,10 +552,6 @@ void WithDropdownController::updateDropdownGeometry() {
 	_menu->move(position);
 }
 
-rpl::producer<bool> WithDropdownController::menuToggledValue() const {
-	return _menuToggled.value();
-}
-
 void WithDropdownController::hideTemporarily() {
 	if (_menu && !_menu->isHidden()) {
 		_temporarilyHidden = true;
@@ -594,19 +584,9 @@ void WithDropdownController::showMenu() {
 		}
 	}, _menu->lifetime());
 	_menu->setHiddenCallback([=]{
-		if (_menu.get() == raw) {
-			_menuToggled = false;
-		}
 		Ui::PostponeCall(raw, [this] {
 			_menu = nullptr;
-			_menuToggled = false;
 		});
-	});
-	_menu->setShowStartCallback([=] {
-		_menuToggled = true;
-	});
-	_menu->setHideStartCallback([=] {
-		_menuToggled = false;
 	});
 	_button->installEventFilter(raw);
 	fillMenu(raw);
@@ -622,7 +602,6 @@ void WithDropdownController::showMenu() {
 		Unexpected("Menu align value.");
 	}();
 	_menu->showAnimated(origin);
-	_menuToggled = true;
 }
 
 OrderController::OrderController(
@@ -710,52 +689,42 @@ void OrderController::updateIcon() {
 }
 
 SpeedController::SpeedController(
-	not_null<Ui::AbstractButton*> button,
-	const style::MediaSpeedButton &st,
+	not_null<SpeedButton*> button,
 	not_null<QWidget*> menuParent,
 	Fn<void(bool)> menuOverCallback,
 	Fn<float64(bool lastNonDefault)> value,
-	Fn<void(float64)> change,
-	std::vector<int> qualities,
-	Fn<VideoQuality()> quality,
-	Fn<void(int)> changeQuality)
+	Fn<void(float64)> change)
 : WithDropdownController(
 	button,
 	menuParent,
-	st.menu.dropdown,
-	st.menuAlign,
+	button->st().menu.dropdown,
+	button->st().menuAlign,
 	std::move(menuOverCallback))
-, _st(st)
+, _st(button->st())
 , _lookup(std::move(value))
-, _change(std::move(change))
-, _qualities(std::move(qualities))
-, _lookupQuality(std::move(quality))
-, _changeQuality(std::move(changeQuality)) {
-	Expects(_qualities.empty() || (_lookupQuality && _changeQuality));
-
+, _change(std::move(change)) {
 	button->setClickedCallback([=] {
-		if (_lookup && !_lookupQuality && !_changeQuality) {
-			toggleDefault();
-			save();
-			if (const auto current = menu()) {
-				current->otherEnter();
-			}
-		} else {
-			showMenu();
+		toggleDefault();
+		save();
+		if (const auto current = menu()) {
+			current->otherEnter();
 		}
 	});
-	if (const auto lookup = _lookup) {
-		setSpeed(lookup(false));
-		_speed = lookup(true);
-	}
+
+	setSpeed(_lookup(false));
+	_speed = _lookup(true);
+
+	button->setSpeed(_speed, anim::type::instant);
+
+	_speedChanged.events_starting_with(
+		speed()
+	) | rpl::start_with_next([=](float64 speed) {
+		button->setSpeed(speed);
+	}, button->lifetime());
 }
 
 rpl::producer<> SpeedController::saved() const {
 	return _saved.events();
-}
-
-rpl::producer<float64> SpeedController::realtimeValue() const {
-	return _speedChanged.events_starting_with(speed());
 }
 
 float64 SpeedController::speed() const {
@@ -783,83 +752,16 @@ void SpeedController::setSpeed(float64 newSpeed) {
 }
 
 void SpeedController::save() {
-	if (const auto change = _change) {
-		change(speed());
-	}
+	_change(speed());
 	_saved.fire({});
 }
 
-void SpeedController::setQuality(VideoQuality quality) {
-	_quality = quality;
-	_changeQuality(quality.manual ? quality.height : 0);
-}
-
 void SpeedController::fillMenu(not_null<Ui::DropdownMenu*> menu) {
-	if (_lookup) {
-		FillSpeedMenu(
-			menu->menu(),
-			_st.menu,
-			_speedChanged.events_starting_with(speed()),
-			[=](float64 speed) { setSpeed(speed); save(); },
-			!_qualities.empty());
-	}
-	if (_qualities.empty()) {
-		return;
-	}
-	_quality = _lookupQuality();
-	const auto raw = menu->menu();
-	const auto &st = _st.menu;
-	if (_lookup) {
-		raw->addSeparator(&st.dropdown.menu.separator);
-	}
-
-	const auto add = [&](int quality) {
-		const auto automatic = tr::lng_mediaview_quality_auto(tr::now);
-		const auto text = quality ? u"%1p"_q.arg(quality) : automatic;
-		auto action = base::make_unique_q<Ui::Menu::Action>(
-			raw,
-			st.qualityMenu,
-			Ui::Menu::CreateAction(
-				raw,
-				text,
-				[=] { _changeQuality(quality); }),
-			nullptr,
-			nullptr);
-		const auto raw = action.get();
-		const auto check = Ui::CreateChild<Ui::RpWidget>(raw);
-		check->resize(st.activeCheck.size());
-		check->paintRequest(
-		) | rpl::start_with_next([check, icon = &st.activeCheck] {
-			auto p = QPainter(check);
-			icon->paint(p, 0, 0, check->width());
-		}, check->lifetime());
-		raw->sizeValue(
-		) | rpl::start_with_next([=, skip = st.activeCheckSkip](QSize size) {
-			check->moveToRight(
-				skip,
-				(size.height() - check->height()) / 2,
-				size.width());
-		}, check->lifetime());
-		check->setAttribute(Qt::WA_TransparentForMouseEvents);
-		_quality.value(
-		) | rpl::start_with_next([=](VideoQuality now) {
-			const auto chosen = now.manual
-				? (now.height == quality)
-				: !quality;
-			raw->action()->setEnabled(!chosen);
-			if (!quality) {
-				raw->action()->setText(automatic
-					+ (now.manual ? QString() : u"\t%1p"_q.arg(now.height)));
-			}
-			check->setVisible(chosen);
-		}, raw->lifetime());
-		menu->addAction(std::move(action));
-	};
-
-	add(0);
-	for (const auto quality : _qualities) {
-		add(quality);
-	}
+	FillSpeedMenu(
+		menu->menu(),
+		_st.menu,
+		_speedChanged.events_starting_with(speed()),
+		[=](float64 speed) { setSpeed(speed); save(); });
 }
 
 } // namespace Media::Player

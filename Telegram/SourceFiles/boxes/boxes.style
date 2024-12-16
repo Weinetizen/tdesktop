@@ -154,7 +154,9 @@ contactsSortButton: IconButton(defaultIconButton) {
 	iconPosition: point(10px, -1px);
 	rippleAreaPosition: point(1px, 6px);
 	rippleAreaSize: 42px;
-	ripple: defaultRippleAnimationBgOver;
+	ripple: RippleAnimation(defaultRippleAnimation) {
+		color: windowBgOver;
+	}
 }
 contactsSortOnlineIcon: icon{{ "contacts_online", boxTitleCloseFg }};
 contactsSortOnlineIconOver: icon{{ "contacts_online", boxTitleCloseFgOver }};
@@ -414,7 +416,9 @@ calendarPrevious: IconButton {
 
 	rippleAreaPosition: point(2px, 2px);
 	rippleAreaSize: 44px;
-	ripple: defaultRippleAnimationBgOver;
+	ripple: RippleAnimation(defaultRippleAnimation) {
+		color: windowBgOver;
+	}
 }
 calendarPreviousDisabled: icon {{ "calendar_down-flip_vertical", menuIconFg }};
 calendarNext: IconButton(calendarPrevious) {
@@ -612,7 +616,9 @@ proxyTryIPv6Padding: margins(22px, 8px, 22px, 5px);
 proxyRowPadding: margins(22px, 8px, 8px, 8px);
 proxyRowIconSkip: 32px;
 proxyRowSkip: 2px;
-proxyRowRipple: defaultRippleAnimationBgOver;
+proxyRowRipple: RippleAnimation(defaultRippleAnimation) {
+	color: windowBgOver;
+}
 proxyRowTitleFg: windowFg;
 proxyRowTitlePalette: TextPalette(defaultTextPalette) {
 	linkFg: windowSubTextFg;
@@ -677,7 +683,9 @@ themesMenuToggle: IconButton(defaultIconButton) {
 
 	rippleAreaPosition: point(4px, 4px);
 	rippleAreaSize: 36px;
-	ripple: defaultRippleAnimationBgOver;
+	ripple: RippleAnimation(defaultRippleAnimation) {
+		color: windowBgOver;
+	}
 }
 themesMenuPosition: point(-2px, 25px);
 
@@ -730,7 +738,9 @@ createPollOptionRemove: CrossButton {
 
 	duration: 150;
 	loadingPeriod: 1000;
-	ripple: defaultRippleAnimationBgOver;
+	ripple: RippleAnimation(defaultRippleAnimation) {
+		color: windowBgOver;
+	}
 }
 createPollOptionRemovePosition: point(11px, 9px);
 createPollOptionEmojiPositionSkip: 4px;
@@ -878,13 +888,6 @@ peerListWithInviteViaLink: PeerList(peerListBox) {
 peerListSingleRow: PeerList(peerListBox) {
 	padding: margins(0px, 0px, 0px, 0px);
 }
-peerListSmallSkips: PeerList(peerListBox) {
-	padding: margins(
-		0px,
-		defaultVerticalListSkip,
-		0px,
-		defaultVerticalListSkip);
-}
 
 scheduleHeight: 95px;
 scheduleDateTop: 38px;
@@ -948,7 +951,9 @@ sponsoredUrlButton: RoundButton(defaultActiveButton) {
 	textTop: 7px;
 	style: defaultTextStyle;
 
-	ripple: defaultRippleAnimationBgOver;
+	ripple: RippleAnimation(defaultRippleAnimation) {
+		color: windowBgOver;
+	}
 }
 
 requestPeerRestriction: FlatLabel(defaultFlatLabel) {

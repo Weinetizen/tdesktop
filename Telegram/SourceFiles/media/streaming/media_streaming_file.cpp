@@ -490,14 +490,6 @@ void File::setLoaderPriority(int priority) {
 	_reader->setLoaderPriority(priority);
 }
 
-int64 File::size() const {
-	return _reader->size();
-}
-
-rpl::producer<SpeedEstimate> File::speedEstimate() const {
-	return _reader->speedEstimate();
-}
-
 File::~File() {
 	stop();
 }

@@ -41,43 +41,6 @@ bool PruneDestroyedAndSet(
 	return result;
 }
 
-[[nodiscard]] auto LookupOtherQualities(
-	DocumentData *original,
-	not_null<DocumentData*> quality,
-	HistoryItem *context)
--> std::vector<Media::Streaming::QualityDescriptor> {
-	if (!original || !context) {
-		return {};
-	}
-	auto qualities = original->resolveQualities(context);
-	if (qualities.empty()) {
-		return {};
-	}
-	auto result = std::vector<Media::Streaming::QualityDescriptor>();
-	result.reserve(qualities.size());
-	for (const auto &video : qualities) {
-		if (video != quality) {
-			if (const auto height = video->resolveVideoQuality()) {
-				result.push_back({
-					.sizeInBytes = uint32(video->size),
-					.height = uint32(height),
-				});
-			}
-		}
-	}
-	return result;
-}
-
-[[nodiscard]] auto LookupOtherQualities(
-	DocumentData *original,
-	not_null<PhotoData*> quality,
-	HistoryItem *context)
--> std::vector<Media::Streaming::QualityDescriptor> {
-	Expects(!original);
-
-	return {};
-}
-
 } // namespace
 
 Streaming::Streaming(not_null<Session*> owner)
@@ -86,6 +49,7 @@ Streaming::Streaming(not_null<Session*> owner)
 }
 
 Streaming::~Streaming() = default;
+
 
 template <typename Data>
 [[nodiscard]] std::shared_ptr<Streaming::Reader> Streaming::sharedReader(
@@ -120,16 +84,10 @@ template <typename Data>
 		base::flat_map<not_null<Data*>, std::weak_ptr<Document>> &documents,
 		base::flat_map<not_null<Data*>, std::weak_ptr<Reader>> &readers,
 		not_null<Data*> data,
-		DocumentData *original,
-		HistoryItem *context,
 		FileOrigin origin) {
-	auto otherQualities = LookupOtherQualities(original, data, context);
 	const auto i = documents.find(data);
 	if (i != end(documents)) {
 		if (auto result = i->second.lock()) {
-			if (!otherQualities.empty()) {
-				result->setOtherQualities(std::move(otherQualities));
-			}
 			return result;
 		}
 	}
@@ -137,10 +95,7 @@ template <typename Data>
 	if (!reader) {
 		return nullptr;
 	}
-	auto result = std::make_shared<Document>(
-		data,
-		std::move(reader),
-		std::move(otherQualities));
+	auto result = std::make_shared<Document>(data, std::move(reader));
 	if (!PruneDestroyedAndSet(documents, data, result)) {
 		documents.emplace_or_assign(data, result);
 	}
@@ -181,27 +136,7 @@ std::shared_ptr<Streaming::Reader> Streaming::sharedReader(
 std::shared_ptr<Streaming::Document> Streaming::sharedDocument(
 		not_null<DocumentData*> document,
 		FileOrigin origin) {
-	return sharedDocument(
-		_fileDocuments,
-		_fileReaders,
-		document,
-		nullptr,
-		nullptr,
-		origin);
-}
-
-std::shared_ptr<Streaming::Document> Streaming::sharedDocument(
-		not_null<DocumentData*> quality,
-		not_null<DocumentData*> original,
-		HistoryItem *context,
-		FileOrigin origin) {
-	return sharedDocument(
-		_fileDocuments,
-		_fileReaders,
-		quality,
-		original,
-		context,
-		origin);
+	return sharedDocument(_fileDocuments, _fileReaders, document, origin);
 }
 
 std::shared_ptr<Streaming::Reader> Streaming::sharedReader(
@@ -214,13 +149,7 @@ std::shared_ptr<Streaming::Reader> Streaming::sharedReader(
 std::shared_ptr<Streaming::Document> Streaming::sharedDocument(
 		not_null<PhotoData*> photo,
 		FileOrigin origin) {
-	return sharedDocument(
-		_photoDocuments,
-		_photoReaders,
-		photo,
-		nullptr,
-		nullptr,
-		origin);
+	return sharedDocument(_photoDocuments, _photoReaders, photo, origin);
 }
 
 void Streaming::keepAlive(not_null<DocumentData*> document) {

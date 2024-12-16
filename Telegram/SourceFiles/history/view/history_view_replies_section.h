@@ -183,8 +183,6 @@ public:
 		not_null<TranslateTracker*> tracker) override;
 	Ui::ChatPaintContext listPreparePaintContext(
 		Ui::ChatPaintContextArgs &&args) override;
-	base::unique_qptr<Ui::PopupMenu> listFillSenderUserpicMenu(
-		PeerId userpicPeerId) override;
 
 	// CornerButtonsDelegate delegate.
 	void cornerButtonsShowAtPosition(

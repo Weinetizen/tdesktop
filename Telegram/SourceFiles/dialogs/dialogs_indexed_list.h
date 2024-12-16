@@ -7,14 +7,12 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #pragma once
 
+#include "dialogs/dialogs_entry.h"
 #include "dialogs/dialogs_list.h"
 
 class History;
 
 namespace Dialogs {
-
-struct RowsByLetter;
-class Row;
 
 class IndexedList {
 public:

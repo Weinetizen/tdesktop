@@ -37,6 +37,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include <shellapi.h>
 #include <strsafe.h>
 
+#ifndef __MINGW32__
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Data.Xml.Dom.h>
 #include <winrt/Windows.UI.Notifications.h>
@@ -47,9 +48,12 @@ using namespace winrt::Windows::UI::Notifications;
 using namespace winrt::Windows::Data::Xml::Dom;
 using namespace winrt::Windows::Foundation;
 using winrt::com_ptr;
+#endif // !__MINGW32__
 
 namespace Platform {
 namespace Notifications {
+
+#ifndef __MINGW32__
 namespace {
 
 constexpr auto kQuerySettingsEachMs = 1000;
@@ -363,7 +367,6 @@ bool SkipSoundForCustom() {
 
 	return (UserNotificationState == QUNS_NOT_PRESENT)
 		|| (UserNotificationState == QUNS_PRESENTATION_MODE)
-		|| (FocusAssistBlocks && Core::App().settings().skipToastsInFocus())
 		|| Core::App().screenIsLocked();
 }
 
@@ -372,6 +375,7 @@ bool SkipFlashBounceForCustom() {
 }
 
 } // namespace
+#endif // !__MINGW32__
 
 void MaybePlaySoundForCustom(Fn<void()> playSound) {
 	if (!SkipSoundForCustom()) {
@@ -383,8 +387,7 @@ bool SkipToastForCustom() {
 	QuerySystemNotificationSettings();
 
 	return (UserNotificationState == QUNS_PRESENTATION_MODE)
-		|| (UserNotificationState == QUNS_RUNNING_D3D_FULL_SCREEN)
-		|| (FocusAssistBlocks && Core::App().settings().skipToastsInFocus());
+		|| (UserNotificationState == QUNS_RUNNING_D3D_FULL_SCREEN);
 }
 
 void MaybeFlashBounceForCustom(Fn<void()> flashBounce) {
@@ -400,11 +403,15 @@ bool WaitForInputForCustom() {
 }
 
 bool Supported() {
+#ifndef __MINGW32__
 	if (!Checked) {
 		Checked = true;
 		Check();
 	}
 	return InitSucceeded;
+#endif // !__MINGW32__
+
+	return false;
 }
 
 bool Enforced() {
@@ -416,6 +423,7 @@ bool ByDefault() {
 }
 
 void Create(Window::Notifications::System *system) {
+#ifndef __MINGW32__
 	if (Core::App().settings().nativeNotifications() && Supported()) {
 		auto result = std::make_unique<Manager>(system);
 		if (result->init()) {
@@ -423,9 +431,11 @@ void Create(Window::Notifications::System *system) {
 			return;
 		}
 	}
+#endif // !__MINGW32__
 	system->setManager(nullptr);
 }
 
+#ifndef __MINGW32__
 class Manager::Private {
 public:
 	explicit Private(Manager *instance);
@@ -980,6 +990,7 @@ void Manager::doMaybeFlashBounce(Fn<void()> flashBounce) {
 		flashBounce();
 	}
 }
+#endif // !__MINGW32__
 
 } // namespace Notifications
 } // namespace Platform

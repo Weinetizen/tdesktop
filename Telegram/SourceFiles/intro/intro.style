@@ -165,7 +165,9 @@ introBackButton: IconButton(defaultIconButton) {
 
 	rippleAreaPosition: point(8px, 8px);
 	rippleAreaSize: 40px;
-	ripple: defaultRippleAnimationBgOver;
+	ripple: RippleAnimation(defaultRippleAnimation) {
+		color: windowBgOver;
+	}
 }
 
 introQrTop: -18px;

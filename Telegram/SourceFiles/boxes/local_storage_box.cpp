@@ -7,6 +7,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "boxes/local_storage_box.h"
 
+#include "boxes/abstract_box.h"
 #include "ui/wrap/vertical_layout.h"
 #include "ui/wrap/slide_wrap.h"
 #include "ui/widgets/labels.h"
@@ -20,8 +21,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "storage/cache/storage_cache_database.h"
 #include "data/data_session.h"
 #include "lang/lang_keys.h"
+#include "mainwindow.h"
 #include "main/main_session.h"
-#include "window/window_session_controller.h"
 #include "styles/style_layers.h"
 #include "styles/style_boxes.h"
 
@@ -239,8 +240,7 @@ int LocalStorageBox::Row::resizeGetHeight(int newWidth) {
 }
 
 void LocalStorageBox::Row::paintEvent(QPaintEvent *e) {
-#if 0 // not used
-	if (!_progress) {
+	if (!_progress || true) {
 		return;
 	}
 	auto p = QPainter(this);
@@ -254,7 +254,6 @@ void LocalStorageBox::Row::paintEvent(QPaintEvent *e) {
 			st::proxyCheckingPosition.y() + bottom
 		},
 		width());
-#endif
 }
 
 QString LocalStorageBox::Row::titleText(const Database::TaggedSummary &data) const {
@@ -281,19 +280,19 @@ LocalStorageBox::LocalStorageBox(
 	_timeLimit = settings.totalTimeLimit;
 }
 
-void LocalStorageBox::Show(not_null<Window::SessionController*> controller) {
+void LocalStorageBox::Show(not_null<::Main::Session*> session) {
 	auto shared = std::make_shared<object_ptr<LocalStorageBox>>(
-		Box<LocalStorageBox>(&controller->session(), CreateTag()));
+		Box<LocalStorageBox>(session, CreateTag()));
 	const auto weak = shared->data();
 	rpl::combine(
-		controller->session().data().cache().statsOnMain(),
-		controller->session().data().cacheBigFile().statsOnMain()
+		session->data().cache().statsOnMain(),
+		session->data().cacheBigFile().statsOnMain()
 	) | rpl::start_with_next([=](
 			Database::Stats &&stats,
 			Database::Stats &&statsBig) {
 		weak->update(std::move(stats), std::move(statsBig));
 		if (auto &strong = *shared) {
-			controller->uiShow()->show(std::move(strong));
+			Ui::show(std::move(strong));
 		}
 	}, weak->lifetime());
 }

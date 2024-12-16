@@ -28,7 +28,7 @@ QString SendData::getLayoutDescription(const Result *owner) const {
 	return owner->_description;
 }
 
-not_null<HistoryItem*> SendDataCommon::makeMessage(
+void SendDataCommon::addToHistory(
 		const Result *owner,
 		not_null<History*> history,
 		HistoryItemCommonFields &&fields) const {
@@ -36,7 +36,7 @@ not_null<HistoryItem*> SendDataCommon::makeMessage(
 	if (fields.replyTo) {
 		fields.flags |= MessageFlag::HasReplyInfo;
 	}
-	return history->makeMessage(
+	history->addNewLocalMessage(
 		std::move(fields),
 		std::move(distinct.text),
 		std::move(distinct.media));
@@ -96,14 +96,14 @@ QString SendContact::getLayoutDescription(const Result *owner) const {
 	return result;
 }
 
-not_null<HistoryItem*> SendPhoto::makeMessage(
+void SendPhoto::addToHistory(
 		const Result *owner,
 		not_null<History*> history,
 		HistoryItemCommonFields &&fields) const {
-	return history->makeMessage(
+	history->addNewLocalMessage(
 		std::move(fields),
 		_photo,
-		TextWithEntities{ _message, _entities });
+		{ _message, _entities });
 }
 
 QString SendPhoto::getErrorOnSend(
@@ -113,14 +113,14 @@ QString SendPhoto::getErrorOnSend(
 	return Data::RestrictionError(history->peer, type).value_or(QString());
 }
 
-not_null<HistoryItem*> SendFile::makeMessage(
+void SendFile::addToHistory(
 		const Result *owner,
 		not_null<History*> history,
 		HistoryItemCommonFields &&fields) const {
-	return history->makeMessage(
+	history->addNewLocalMessage(
 		std::move(fields),
 		_document,
-		TextWithEntities{ _message, _entities });
+		{ _message, _entities });
 }
 
 QString SendFile::getErrorOnSend(
@@ -130,11 +130,11 @@ QString SendFile::getErrorOnSend(
 	return Data::RestrictionError(history->peer, type).value_or(QString());
 }
 
-not_null<HistoryItem*> SendGame::makeMessage(
+void SendGame::addToHistory(
 		const Result *owner,
 		not_null<History*> history,
 		HistoryItemCommonFields &&fields) const {
-	return history->addNewLocalMessage(std::move(fields), _game);
+	history->addNewLocalMessage(std::move(fields), _game);
 }
 
 QString SendGame::getErrorOnSend(

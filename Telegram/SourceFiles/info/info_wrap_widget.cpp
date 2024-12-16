@@ -64,9 +64,8 @@ const style::InfoTopBar &TopBarStyle(Wrap wrap) {
 
 [[nodiscard]] bool HasCustomTopBar(not_null<const Controller*> controller) {
 	const auto section = controller->section();
-	return (section.type() == Section::Type::BotStarRef)
-		|| ((section.type() == Section::Type::Settings)
-			&& section.settingsType()->hasCustomTopBar());
+	return (section.type() == Section::Type::Settings)
+		&& section.settingsType()->hasCustomTopBar();
 }
 
 [[nodiscard]] Fn<Ui::StringWithNumbers(int)> SelectedTitleForMedia(
@@ -290,10 +289,8 @@ Dialogs::RowDescriptor WrapWidget::activeChat() const {
 			: Dialogs::RowDescriptor();
 	} else if (key().settingsSelf()
 			|| key().isDownloads()
-			|| key().reactionsContextId()
 			|| key().poll()
-			|| key().starrefPeer()
-			|| key().statisticsTag().peer) {
+			|| key().statisticsPeer()) {
 		return Dialogs::RowDescriptor();
 	}
 	Unexpected("Owner in WrapWidget::activeChat().");
@@ -529,14 +526,14 @@ void WrapWidget::showTopBarMenu(bool check) {
 }
 
 bool WrapWidget::requireTopBarSearch() const {
-	if (!_topBar
-		|| !_controller->searchFieldController()
-		|| (_controller->wrap() == Wrap::Layer)
-		|| (_controller->section().type() == Section::Type::Profile)
-		|| key().isDownloads()) {
+	if (!_topBar || !_controller->searchFieldController()) {
 		return false;
-	} else if (hasStackHistory()
-		|| _controller->section().type() == Section::Type::RequestsList) {
+	} else if (_controller->wrap() == Wrap::Layer
+		|| _controller->section().type() == Section::Type::Profile) {
+		return false;
+	} else if (key().isDownloads()) {
+		return false;
+	} else if (hasStackHistory()) {
 		return true;
 	}
 	return false;

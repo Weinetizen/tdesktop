@@ -148,7 +148,6 @@ ClickHandlerPtr JumpToStoryClickHandler(
 [[nodiscard]] ClickHandlerPtr HideSponsoredClickHandler();
 [[nodiscard]] ClickHandlerPtr ReportSponsoredClickHandler(
 	not_null<HistoryItem*> item);
-[[nodiscard]] ClickHandlerPtr AboutSponsoredClickHandler();
 
 [[nodiscard]] not_null<HistoryItem*> GenerateJoinedMessage(
 	not_null<History*> history,

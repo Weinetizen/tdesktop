@@ -29,9 +29,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 namespace Settings {
 [[nodiscard]] not_null<Ui::RpWidget*> AddBalanceWidget(
 	not_null<Ui::RpWidget*> parent,
-	rpl::producer<StarsAmount> balanceValue,
-	bool rightAlign,
-	rpl::producer<float64> opacityValue = nullptr);
+	rpl::producer<uint64> balanceValue,
+	bool rightAlign);
 } // namespace Settings
 
 namespace Ui {

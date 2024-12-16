@@ -1099,10 +1099,6 @@ void Reader::continueDownloaderFromMainThread() {
 	}
 }
 
-rpl::producer<SpeedEstimate> Reader::speedEstimate() const {
-	return _loader->speedEstimate();
-}
-
 void Reader::setLoaderPriority(int priority) {
 	if (_realPriority == priority) {
 		return;

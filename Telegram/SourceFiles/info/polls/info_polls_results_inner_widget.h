@@ -16,10 +16,10 @@ class VerticalLayout;
 } // namespace Ui
 
 namespace Info {
-class Controller;
-} // namespace Info
 
-namespace Info::Polls {
+class Controller;
+
+namespace Polls {
 
 class Memento;
 class ListController;
@@ -70,4 +70,5 @@ private:
 
 };
 
-} // namespace Info::Polls
+} // namespace Polls
+} // namespace Info

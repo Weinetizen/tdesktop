@@ -21,7 +21,6 @@ struct Boost;
 struct CreditsHistoryEntry;
 struct SubscriptionEntry;
 struct GiftCode;
-struct CreditTopupOption;
 } // namespace Data
 
 namespace Main {
@@ -58,23 +57,20 @@ void FillCreditOptions(
 	std::shared_ptr<Main::SessionShow> show,
 	not_null<Ui::VerticalLayout*> container,
 	not_null<PeerData*> peer,
-	StarsAmount minCredits,
-	Fn<void()> paid,
-	rpl::producer<QString> subtitle,
-	std::vector<Data::CreditTopupOption> preloadedTopupOptions);
+	int minCredits,
+	Fn<void()> paid);
 
 [[nodiscard]] not_null<Ui::RpWidget*> AddBalanceWidget(
 	not_null<Ui::RpWidget*> parent,
-	rpl::producer<StarsAmount> balanceValue,
-	bool rightAlign,
-	rpl::producer<float64> opacityValue = nullptr);
+	rpl::producer<uint64> balanceValue,
+	bool rightAlign);
 
 void AddWithdrawalWidget(
 	not_null<Ui::VerticalLayout*> container,
 	not_null<Window::SessionController*> controller,
 	not_null<PeerData*> peer,
 	rpl::producer<QString> secondButtonUrl,
-	rpl::producer<StarsAmount> availableBalanceValue,
+	rpl::producer<uint64> availableBalanceValue,
 	rpl::producer<QDateTime> dateValue,
 	rpl::producer<bool> lockedValue,
 	rpl::producer<QString> usdValue);
@@ -130,11 +126,6 @@ void ShowRefundInfoBox(
 	int totalCount,
 	int photoSize);
 
-[[nodiscard]] object_ptr<Ui::RpWidget> SubscriptionUserpic(
-	not_null<Ui::RpWidget*> parent,
-	not_null<PeerData*> peer,
-	int photoSize);
-
 struct SmallBalanceBot {
 	UserId botId = 0;
 };
@@ -162,7 +153,7 @@ struct SmallBalanceSource : std::variant<
 void SmallBalanceBox(
 	not_null<Ui::GenericBox*> box,
 	std::shared_ptr<Main::SessionShow> show,
-	uint64 wholeCredits,
+	uint64 credits,
 	SmallBalanceSource source,
 	Fn<void()> paid);
 

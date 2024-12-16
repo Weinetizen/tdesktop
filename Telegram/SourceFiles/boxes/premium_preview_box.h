@@ -71,7 +71,6 @@ enum class PremiumFeature {
 	MessagePrivacy,
 	Business,
 	Effects,
-	FilterTags,
 
 	// Business features.
 	BusinessLocation,

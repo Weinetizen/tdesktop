@@ -14,26 +14,20 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 class DocumentData;
 
-namespace Media::Streaming {
+namespace Media {
+namespace Streaming {
 
 class Instance;
 class Loader;
-
-struct QualityDescriptor {
-	uint32 sizeInBytes = 0;
-	uint32 height = 0;
-};
 
 class Document {
 public:
 	Document(
 		not_null<DocumentData*> document,
-		std::shared_ptr<Reader> reader,
-		std::vector<QualityDescriptor> otherQualities = {});
+		std::shared_ptr<Reader> reader);
 	Document(
 		not_null<PhotoData*> photo,
-		std::shared_ptr<Reader> reader,
-		std::vector<QualityDescriptor> otherQualities = {});
+		std::shared_ptr<Reader> reader);
 	explicit Document(std::unique_ptr<Loader> loader);
 
 	void play(const PlaybackOptions &options);
@@ -47,15 +41,11 @@ public:
 	[[nodiscard]] float64 waitingOpacity() const;
 	[[nodiscard]] Ui::RadialState waitingState() const;
 
-	void setOtherQualities(std::vector<QualityDescriptor> value);
-	[[nodiscard]] rpl::producer<int> switchQualityRequests() const;
-
 private:
 	Document(
 		std::shared_ptr<Reader> reader,
 		DocumentData *document,
-		PhotoData *photo,
-		std::vector<QualityDescriptor> otherQualities);
+		PhotoData *photo);
 
 	friend class Instance;
 
@@ -64,9 +54,6 @@ private:
 	void refreshPlayerPriority();
 
 	void waitingCallback();
-	void checkForQualitySwitch(SpeedEstimate estimate);
-	bool checkSwitchToHigherQuality();
-	bool checkSwitchToLowerQuality();
 
 	void handleUpdate(Update &&update);
 	void handleError(Error &&error);
@@ -84,15 +71,14 @@ private:
 
 	rpl::lifetime _subscription;
 
+	bool _waiting = false;
 	mutable Ui::InfiniteRadialAnimation _radial;
 	Ui::Animations::Simple _fading;
 	base::Timer _timer;
 	base::flat_set<not_null<Instance*>> _instances;
-	std::vector<QualityDescriptor> _otherQualities;
-	rpl::event_stream<int> _switchQualityRequests;
-	SpeedEstimate _lastSpeedEstimate;
-	bool _waiting = false;
 
 };
 
-} // namespace Media::Streaming
+
+} // namespace Streaming
+} // namespace Media

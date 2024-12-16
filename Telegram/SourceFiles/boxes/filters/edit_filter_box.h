@@ -7,13 +7,11 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #pragma once
 
+#include "ui/layers/generic_box.h"
+
 namespace Window {
 class SessionController;
 } // namespace Window
-
-namespace Ui {
-class GenericBox;
-} // namespace Ui
 
 namespace Data {
 class ChatFilter;

@@ -161,8 +161,6 @@ private:
 	bool listShowReactPremiumError(
 		not_null<HistoryItem*> item,
 		const Data::ReactionId &id) override;
-	base::unique_qptr<Ui::PopupMenu> listFillSenderUserpicMenu(
-		PeerId userpicPeerId) override;
 	void listWindowSetInnerFocus() override;
 	bool listAllowsDragForward() override;
 	void listLaunchDrag(
@@ -828,11 +826,6 @@ bool Item::listShowReactPremiumError(
 		not_null<HistoryItem*> item,
 		const Data::ReactionId &id) {
 	return false;
-}
-
-base::unique_qptr<Ui::PopupMenu> Item::listFillSenderUserpicMenu(
-		PeerId userpicPeerId) {
-	return nullptr;
 }
 
 void Item::listWindowSetInnerFocus() {

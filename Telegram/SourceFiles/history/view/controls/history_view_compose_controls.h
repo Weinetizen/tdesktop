@@ -76,10 +76,6 @@ namespace Main {
 class Session;
 } // namespace Main
 
-namespace Webrtc {
-enum class RecordAvailability : uchar;
-} // namespace Webrtc
-
 namespace Window {
 struct SectionShow;
 class SessionController;
@@ -248,8 +244,6 @@ public:
 		FieldHistoryAction fieldHistoryAction = FieldHistoryAction::Clear);
 
 	Fn<void()> restoreTextCallback(const QString &insertTextOnCancel) const;
-
-	[[nodiscard]] Ui::InputField *fieldForMention() const;
 
 private:
 	enum class TextUpdateEvent {
@@ -442,12 +436,10 @@ private:
 	bool _isInlineBot = false;
 	bool _botCommandShown = false;
 	bool _likeShown = false;
-	Webrtc::RecordAvailability _recordAvailability = {};
 
 	FullMsgId _editingId;
 	std::shared_ptr<Data::PhotoMedia> _photoEditMedia;
 	bool _canReplaceMedia = false;
-	bool _canAddMedia = false;
 
 	std::unique_ptr<Controls::WebpageProcessor> _preview;
 

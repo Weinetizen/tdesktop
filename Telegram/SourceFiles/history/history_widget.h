@@ -73,17 +73,11 @@ class SpoilerAnimation;
 class ChooseThemeController;
 class ContinuousScroll;
 struct ChatPaintHighlight;
-template <typename Widget>
-class SlideWrap;
 } // namespace Ui
 
 namespace Ui::Emoji {
 class SuggestionsController;
 } // namespace Ui::Emoji
-
-namespace Webrtc {
-enum class RecordAvailability : uchar;
-} // namespace Webrtc
 
 namespace Window {
 class SessionController;
@@ -211,10 +205,6 @@ public:
 		not_null<HistoryItem*> item,
 		const TextSelection &selection);
 
-	void fillSenderUserpicMenu(
-		not_null<Ui::PopupMenu*> menu,
-		not_null<PeerData*> peer);
-
 	[[nodiscard]] FullReplyTo replyTo() const;
 	bool lastForceReplyReplied(const FullMsgId &replyTo) const;
 	bool lastForceReplyReplied() const;
@@ -267,10 +257,7 @@ public:
 	[[nodiscard]] rpl::producer<> cancelRequests() const {
 		return _cancelRequests.events();
 	}
-	bool searchInChatEmbedded(
-		QString query,
-		Dialogs::Key chat,
-		PeerData *searchFrom = nullptr);
+	bool searchInChatEmbedded(Dialogs::Key chat, QString query);
 
 	void updateNotifyControls();
 
@@ -541,11 +528,6 @@ private:
 	void setupGroupCallBar();
 	void setupRequestsBar();
 
-	void checkSponsoredMessageBar();
-	[[nodiscard]] bool checkSponsoredMessageBarVisibility() const;
-	void requestSponsoredMessageBar();
-	void createSponsoredMessageBar();
-
 	void sendInlineResult(InlineBots::ResultSelected result);
 
 	void drawField(Painter &p, const QRect &rect);
@@ -679,7 +661,6 @@ private:
 	MsgId _editMsgId = 0;
 	std::shared_ptr<Data::PhotoMedia> _photoEditMedia;
 	bool _canReplaceMedia = false;
-	bool _canAddMedia = false;
 	HistoryView::MediaEditManager _mediaEditManager;
 
 	HistoryItem *_replyEditMsg = nullptr;
@@ -704,12 +685,8 @@ private:
 	std::unique_ptr<Ui::RequestsBar> _requestsBar;
 	int _requestsBarHeight = 0;
 
-	base::unique_qptr<Ui::SlideWrap<Ui::RpWidget>> _sponsoredMessageBar;
-	int _sponsoredMessageBarHeight = 0;
-
 	bool _preserveScrollTop = false;
 	bool _repaintFieldScheduled = false;
-	bool _sentFromScheduledTip = false;
 
 	mtpRequestId _saveEditMsgRequestId = 0;
 
@@ -744,8 +721,6 @@ private:
 	QPointer<HistoryInner> _list;
 	History *_migrated = nullptr;
 	History *_history = nullptr;
-	rpl::lifetime _historySponsoredPreloading;
-
 	// Initial updateHistoryGeometry() was called.
 	bool _historyInited = false;
 	// If updateListSize() was called without updateHistoryGeometry().
@@ -770,8 +745,6 @@ private:
 	bool _inlineLookingUpBot = false;
 	mtpRequestId _inlineBotResolveRequestId = 0;
 	bool _isInlineBot = false;
-
-	Webrtc::RecordAvailability _recordAvailability = {};
 
 	std::unique_ptr<HistoryView::ContactStatus> _contactStatus;
 	std::unique_ptr<HistoryView::BusinessBotStatus> _businessBotStatus;

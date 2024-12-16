@@ -53,15 +53,10 @@ object_ptr<Ui::BoxContent> ReassignBoostsBox(
 	Fn<void(std::vector<int> slots, int groups, int channels)> reassign,
 	Fn<void()> cancel);
 
-enum class UserpicsTransferType {
-	BoostReplace,
-	StarRefJoin,
-};
-[[nodiscard]] object_ptr<Ui::RpWidget> CreateUserpicsTransfer(
+[[nodiscard]] object_ptr<Ui::RpWidget> CreateBoostReplaceUserpics(
 	not_null<Ui::RpWidget*> parent,
 	rpl::producer<std::vector<not_null<PeerData*>>> from,
-	not_null<PeerData*> to,
-	UserpicsTransferType type);
+	not_null<PeerData*> to);
 
 [[nodiscard]] object_ptr<Ui::RpWidget> CreateUserpicsWithMoreBadge(
 	not_null<Ui::RpWidget*> parent,

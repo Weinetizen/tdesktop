@@ -29,16 +29,13 @@ constexpr auto kWaitingFastDuration = crl::time(200);
 constexpr auto kWaitingShowDuration = crl::time(500);
 constexpr auto kWaitingShowDelay = crl::time(500);
 constexpr auto kGoodThumbQuality = 87;
-constexpr auto kSwitchQualityUpPreloadedThreshold = 4 * crl::time(1000);
-constexpr auto kSwitchQualityUpSpeedMultiplier = 1.2;
 
 } // namespace
 
 Document::Document(
 	not_null<DocumentData*> document,
-	std::shared_ptr<Reader> reader,
-	std::vector<QualityDescriptor> otherQualities)
-: Document(std::move(reader), document, {}, std::move(otherQualities)) {
+	std::shared_ptr<Reader> reader)
+: Document(std::move(reader), document, nullptr) {
 	_player.fullInCache(
 	) | rpl::start_with_next([=](bool fullInCache) {
 		_document->setLoadedInMediaCache(fullInCache);
@@ -47,27 +44,24 @@ Document::Document(
 
 Document::Document(
 	not_null<PhotoData*> photo,
-	std::shared_ptr<Reader> reader,
-	std::vector<QualityDescriptor> otherQualities)
-: Document(std::move(reader), {}, photo, {}) {
+	std::shared_ptr<Reader> reader)
+: Document(std::move(reader), nullptr, photo) {
 }
 
 Document::Document(std::unique_ptr<Loader> loader)
-: Document(std::make_shared<Reader>(std::move(loader)), {}, {}, {}) {
+: Document(std::make_shared<Reader>(std::move(loader)), nullptr, nullptr) {
 }
 
 Document::Document(
 	std::shared_ptr<Reader> reader,
 	DocumentData *document,
-	PhotoData *photo,
-	std::vector<QualityDescriptor> otherQualities)
+	PhotoData *photo)
 : _document(document)
 , _photo(photo)
 , _player(std::move(reader))
 , _radial(
-	[=] { waitingCallback(); },
-	st::defaultInfiniteRadialAnimation)
-, _otherQualities(std::move(otherQualities)) {
+		[=] { waitingCallback(); },
+		st::defaultInfiniteRadialAnimation) {
 	resubscribe();
 }
 
@@ -144,27 +138,20 @@ Ui::RadialState Document::waitingState() const {
 	return _radial.computeState();
 }
 
-rpl::producer<int> Document::switchQualityRequests() const {
-	return _switchQualityRequests.events();
-}
-
 void Document::handleUpdate(Update &&update) {
 	v::match(update.data, [&](Information &update) {
 		ready(std::move(update));
-	}, [&](PreloadedVideo update) {
+	}, [&](const PreloadedVideo &update) {
 		_info.video.state.receivedTill = update.till;
-		checkSwitchToHigherQuality();
-	}, [&](UpdateVideo update) {
+	}, [&](const UpdateVideo &update) {
 		_info.video.state.position = update.position;
-	}, [&](PreloadedAudio update) {
+	}, [&](const PreloadedAudio &update) {
 		_info.audio.state.receivedTill = update.till;
-	}, [&](UpdateAudio update) {
+	}, [&](const UpdateAudio &update) {
 		_info.audio.state.position = update.position;
-	}, [&](WaitingForData update) {
+	}, [&](const WaitingForData &update) {
 		waitingChange(update.waiting);
-	}, [&](SpeedEstimate update) {
-		checkForQualitySwitch(update);
-	}, [](MutedByOther) {
+	}, [&](MutedByOther) {
 	}, [&](Finished) {
 		const auto finishTrack = [](TrackState &state) {
 			state.position = state.receivedTill = state.duration;
@@ -172,76 +159,6 @@ void Document::handleUpdate(Update &&update) {
 		finishTrack(_info.audio.state);
 		finishTrack(_info.video.state);
 	});
-}
-
-void Document::setOtherQualities(std::vector<QualityDescriptor> value) {
-	_otherQualities = std::move(value);
-	checkForQualitySwitch(_lastSpeedEstimate);
-}
-
-void Document::checkForQualitySwitch(SpeedEstimate estimate) {
-	_lastSpeedEstimate = estimate;
-	if (!checkSwitchToHigherQuality()) {
-		checkSwitchToLowerQuality();
-	}
-}
-
-bool Document::checkSwitchToHigherQuality() {
-	if (_otherQualities.empty()
-		|| (_info.video.state.duration == kTimeUnknown)
-		|| (_info.video.state.duration == kDurationUnavailable)
-		|| (_info.video.state.position == kTimeUnknown)
-		|| (_info.video.state.receivedTill == kTimeUnknown)
-		|| !_lastSpeedEstimate.bytesPerSecond
-		|| _lastSpeedEstimate.unreliable
-		|| (_info.video.state.receivedTill
-			< std::min(
-				_info.video.state.duration,
-				(_info.video.state.position
-					+ kSwitchQualityUpPreloadedThreshold)))) {
-		return false;
-	}
-	const auto size = _player.fileSize();
-	Assert(size >= 0 && size <= std::numeric_limits<uint32>::max());
-	auto to = QualityDescriptor{ .sizeInBytes = uint32(size) };
-	const auto duration = _info.video.state.duration / 1000.;
-	const auto speed = _player.speed();
-	const auto multiplier = speed * kSwitchQualityUpSpeedMultiplier;
-	for (const auto &descriptor : _otherQualities) {
-		const auto perSecond = descriptor.sizeInBytes / duration;
-		if (descriptor.sizeInBytes > to.sizeInBytes
-			&& _lastSpeedEstimate.bytesPerSecond >= perSecond * multiplier) {
-			to = descriptor;
-		}
-	}
-	if (!to.height) {
-		return false;
-	}
-	_switchQualityRequests.fire_copy(to.height);
-	return true;
-}
-
-bool Document::checkSwitchToLowerQuality() {
-	if (_otherQualities.empty()
-		|| !_waiting
-		|| !_radial.animating()
-		|| !_lastSpeedEstimate.bytesPerSecond) {
-		return false;
-	}
-	const auto size = _player.fileSize();
-	Assert(size >= 0 && size <= std::numeric_limits<uint32>::max());
-	auto to = QualityDescriptor();
-	for (const auto &descriptor : _otherQualities) {
-		if (descriptor.sizeInBytes < size
-			&& descriptor.sizeInBytes > to.sizeInBytes) {
-			to = descriptor;
-		}
-	}
-	if (!to.height) {
-		return false;
-	}
-	_switchQualityRequests.fire_copy(to.height);
-	return true;
 }
 
 void Document::handleError(Error &&error) {
@@ -275,11 +192,11 @@ void Document::waitingChange(bool waiting) {
 			_radial.start(
 				st::defaultInfiniteRadialAnimation.sineDuration);
 		}
-		_fading.start([=] {
-			waitingCallback();
-		}, _waiting ? 0. : 1., _waiting ? 1. : 0., duration);
-
-		checkSwitchToLowerQuality();
+		_fading.start(
+			[=] { waitingCallback(); },
+			_waiting ? 0. : 1.,
+			_waiting ? 1. : 0.,
+			duration);
 	};
 	if (waiting) {
 		if (_radial.animating()) {

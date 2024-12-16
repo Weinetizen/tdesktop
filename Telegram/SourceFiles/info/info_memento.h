@@ -13,17 +13,12 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "window/section_memento.h"
 #include "base/object_ptr.h"
 
-namespace Api {
-struct WhoReadList;
-} // namespace Api
-
 namespace Storage {
 enum class SharedMediaType : signed char;
 } // namespace Storage
 
 namespace Data {
 class ForumTopic;
-struct ReactionId;
 } // namespace Data
 
 namespace Ui {
@@ -51,10 +46,6 @@ public:
 	Memento(not_null<Data::ForumTopic*> topic, Section section);
 	Memento(Settings::Tag settings, Section section);
 	Memento(not_null<PollData*> poll, FullMsgId contextId);
-	Memento(
-		std::shared_ptr<Api::WhoReadList> whoReadIds,
-		FullMsgId contextId,
-		Data::ReactionId selected);
 	explicit Memento(std::vector<std::shared_ptr<ContentMemento>> stack);
 
 	object_ptr<Window::SectionWidget> createWidget(
@@ -100,10 +91,6 @@ private:
 	static std::vector<std::shared_ptr<ContentMemento>> DefaultStack(
 		not_null<PollData*> poll,
 		FullMsgId contextId);
-	static std::vector<std::shared_ptr<ContentMemento>> DefaultStack(
-		std::shared_ptr<Api::WhoReadList> whoReadIds,
-		FullMsgId contextId,
-		Data::ReactionId selected);
 
 	static std::shared_ptr<ContentMemento> DefaultContent(
 		not_null<PeerData*> peer,

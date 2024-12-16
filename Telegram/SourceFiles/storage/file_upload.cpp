@@ -124,8 +124,7 @@ Uploader::Entry::Entry(
 		: file->thumbId) {
 	if (file->type == SendMediaType::File
 		|| file->type == SendMediaType::ThemeFile
-		|| file->type == SendMediaType::Audio
-		|| file->type == SendMediaType::Round) {
+		|| file->type == SendMediaType::Audio) {
 		setDocSize(file->filesize);
 	}
 }
@@ -229,8 +228,6 @@ void Uploader::processDocumentProgress(FullMsgId itemId) {
 		const auto document = media ? media->document() : nullptr;
 		const auto sendAction = (document && document->isVoiceMessage())
 			? Api::SendProgressType::UploadVoice
-			: (document && document->isVideoMessage())
-			? Api::SendProgressType::UploadRound
 			: Api::SendProgressType::UploadFile;
 		const auto progress = (document && document->uploading())
 			? ((document->uploadingData->offset * 100)
@@ -252,8 +249,6 @@ void Uploader::processDocumentFailed(FullMsgId itemId) {
 		const auto document = media ? media->document() : nullptr;
 		const auto sendAction = (document && document->isVoiceMessage())
 			? Api::SendProgressType::UploadVoice
-			: (document && document->isVideoMessage())
-			? Api::SendProgressType::UploadRound
 			: Api::SendProgressType::UploadFile;
 		sendProgressUpdate(item, sendAction, -1);
 	}
@@ -299,8 +294,7 @@ void Uploader::upload(
 			file->partssize);
 	} else if (file->type == SendMediaType::File
 		|| file->type == SendMediaType::ThemeFile
-		|| file->type == SendMediaType::Audio
-		|| file->type == SendMediaType::Round) {
+		|| file->type == SendMediaType::Audio) {
 		const auto document = file->thumb.isNull()
 			? session().data().processDocument(file->document)
 			: session().data().processDocument(
@@ -362,8 +356,7 @@ void Uploader::notifyFailed(const Entry &entry) {
 		_photoFailed.fire_copy(entry.itemId);
 	} else if (type == SendMediaType::File
 		|| type == SendMediaType::ThemeFile
-		|| type == SendMediaType::Audio
-		|| type == SendMediaType::Round) {
+		|| type == SendMediaType::Audio) {
 		const auto document = session().data().document(entry.file->id);
 		if (document->uploading()) {
 			document->status = FileUploadFailed;
@@ -392,8 +385,7 @@ QByteArray Uploader::readDocPart(not_null<Entry*> entry) {
 	const auto checked = [&](QByteArray result) {
 		if ((entry->file->type == SendMediaType::File
 			|| entry->file->type == SendMediaType::ThemeFile
-			|| entry->file->type == SendMediaType::Audio
-			|| entry->file->type == SendMediaType::Round)
+			|| entry->file->type == SendMediaType::Audio)
 			&& entry->docSize <= kUseBigFilesFrom) {
 			entry->md5Hash.feed(result.data(), result.size());
 		}
@@ -764,8 +756,7 @@ void Uploader::partLoaded(const MTPBool &result, mtpRequestId requestId) {
 		_photoProgress.fire_copy(itemId);
 	} else if (entry.file->type == SendMediaType::File
 		|| entry.file->type == SendMediaType::ThemeFile
-		|| entry.file->type == SendMediaType::Audio
-		|| entry.file->type == SendMediaType::Round) {
+		|| entry.file->type == SendMediaType::Audio) {
 		const auto document = session().data().document(entry.file->id);
 		if (document->uploading()) {
 			document->uploadingData->offset = std::min(
@@ -865,8 +856,7 @@ void Uploader::finishFront() {
 		});
 	} else if (entry.file->type == SendMediaType::File
 		|| entry.file->type == SendMediaType::ThemeFile
-		|| entry.file->type == SendMediaType::Audio
-		|| entry.file->type == SendMediaType::Round) {
+		|| entry.file->type == SendMediaType::Audio) {
 		QByteArray docMd5(32, Qt::Uninitialized);
 		hashMd5Hex(entry.md5Hash.result(), docMd5.data());
 

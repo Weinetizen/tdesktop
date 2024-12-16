@@ -297,12 +297,10 @@ std::unique_ptr<Data::Media> HistoryItem::CreateMedia(
 			return nullptr;
 		}
 		return document->match([&](const MTPDdocument &document) -> Result {
-			const auto list = media.valt_documents();
 			return std::make_unique<Data::MediaFile>(
 				item,
-				item->history()->owner().processDocument(document, list),
+				item->history()->owner().processDocument(document),
 				media.is_nopremium(),
-				list && !list->v.isEmpty(),
 				media.is_spoiler(),
 				media.vttl_seconds().value_or_empty());
 		}, [](const MTPDdocumentEmpty &) -> Result {
@@ -628,13 +626,11 @@ HistoryItem::HistoryItem(
 	createComponentsHelper(std::move(fields));
 
 	const auto skipPremiumEffect = !history->session().premium();
-	const auto video = document->video();
 	const auto spoiler = false;
 	_media = std::make_unique<Data::MediaFile>(
 		this,
 		document,
 		skipPremiumEffect,
-		video && !video->qualities.empty(),
 		spoiler,
 		/*ttlSeconds = */0);
 	setText(caption);
@@ -761,10 +757,6 @@ HistoryItem::~HistoryItem() {
 
 TimeId HistoryItem::date() const {
 	return _date;
-}
-
-bool HistoryItem::awaitingVideoProcessing() const {
-	return (_flags & MessageFlag::EstimatedDate);
 }
 
 HistoryServiceDependentData *HistoryItem::GetServiceDependentData() {
@@ -1303,38 +1295,6 @@ void HistoryItem::customEmojiRepaint() {
 	}
 }
 
-bool HistoryItem::needsUpdateForVideoQualities(const MTPMessage &data) {
-	// When video gets the converted alt-videos lists, we need to update
-	// the message data even without edit-message update.
-	return data.match([&](const MTPDmessage &data) {
-		const auto media = data.vmedia();
-		if (!media) {
-			return false;
-		}
-		return media->match([&](const MTPDmessageMediaDocument &data) {
-			const auto document = data.vdocument();
-			const auto alts = data.valt_documents();
-			if (!document || !alts || alts->v.isEmpty()) {
-				return false;
-			}
-			const auto id = document->match([](const auto &data) {
-				return DocumentId(data.vid().v);
-			});
-			const auto existingMedia = this->media();
-			const auto existingDocument = existingMedia
-				? existingMedia->document()
-				: nullptr;
-			return !existingDocument
-				|| (existingDocument->id != id)
-				|| existingDocument->resolveQualities(this).empty();
-		}, [](const auto &) {
-			return false;
-		});
-	}, [](const auto &) {
-		return false;
-	});
-}
-
 void HistoryItem::finishEditionToEmpty() {
 	finishEdition(-1);
 	_history->itemVanished(this);
@@ -1510,10 +1470,12 @@ void HistoryItem::returnSavedMedia() {
 }
 
 void HistoryItem::savePreviousMedia() {
+	Expects(_media != nullptr);
+
 	AddComponents(HistoryMessageSavedMediaData::Bit());
 	const auto data = Get<HistoryMessageSavedMediaData>();
 	data->text = originalText();
-	data->media = _media ? _media->clone(this) : nullptr;
+	data->media = _media->clone(this);
 }
 
 bool HistoryItem::isEditingMedia() const {
@@ -1823,7 +1785,6 @@ void HistoryItem::setStoryFields(not_null<Data::Story*> story) {
 			this,
 			document,
 			/*skipPremiumEffect=*/false,
-			/*hasQualitiesList=*/false,
 			spoiler,
 			/*ttlSeconds = */0);
 	}
@@ -2247,10 +2208,6 @@ bool HistoryItem::allowsSendNow() const {
 		&& !isEditingMedia();
 }
 
-bool HistoryItem::allowsReschedule() const {
-	return allowsSendNow() && !awaitingVideoProcessing();
-}
-
 bool HistoryItem::allowsForward() const {
 	return !isService()
 		&& isRegular()
@@ -2272,11 +2229,6 @@ bool HistoryItem::allowsEdit(TimeId now) const {
 		&& (!_media || _media->allowsEdit())
 		&& !isLegacyMessage()
 		&& !isEditingMedia();
-}
-
-bool HistoryItem::allowsEditMedia() const {
-	return !awaitingVideoProcessing()
-		&& (!_media || _media->allowsEditMedia() || _media->webpage());
 }
 
 bool HistoryItem::canBeEdited() const {
@@ -4590,21 +4542,6 @@ void HistoryItem::setServiceMessageByAction(const MTPmessageAction &action) {
 		return preparePaymentSentText();
 	};
 
-	auto preparePaymentSentMe = [&](const MTPDmessageActionPaymentSentMe &data) {
-		auto result = PreparedServiceText();
-		result.text = (data.is_recurring_used()
-			? tr::lng_action_payment_bot_recurring
-			: tr::lng_action_payment_bot_done)(
-				tr::now,
-				lt_amount,
-				AmountAndStarCurrency(
-					&_history->session(),
-					data.vtotal_amount().v,
-					qs(data.vcurrency())),
-				Ui::Text::WithEntities);
-		return result;
-	};
-
 	auto prepareScreenshotTaken = [this](const MTPDmessageActionScreenshotTaken &) {
 		auto result = PreparedServiceText();
 		if (out()) {
@@ -5408,7 +5345,7 @@ void HistoryItem::setServiceMessageByAction(const MTPmessageAction &action) {
 		prepareSecureValuesSent,
 		prepareContactSignUp,
 		prepareProximityReached,
-		preparePaymentSentMe,
+		PrepareErrorText<MTPDmessageActionPaymentSentMe>,
 		PrepareErrorText<MTPDmessageActionSecureValuesSentMe>,
 		prepareGroupCall,
 		prepareInviteToGroupCall,
@@ -5577,7 +5514,7 @@ void HistoryItem::applyAction(const MTPMessageAction &action) {
 						data.vmessage()->data().ventities().v),
 				}
 				: TextWithEntities()),
-			.starsConverted = int(data.vconvert_stars().value_or_empty()),
+			.convertStars = int(data.vconvert_stars().v),
 			.limitedCount = gift.vavailability_total().value_or_empty(),
 			.limitedLeft = gift.vavailability_remains().value_or_empty(),
 			.count = int(gift.vstars().v),

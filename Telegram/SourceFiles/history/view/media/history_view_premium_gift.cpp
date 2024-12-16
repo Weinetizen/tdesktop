@@ -80,7 +80,7 @@ TextWithEntities PremiumGift::subtitle() {
 			? tr::lng_action_gift_sent_text(
 				tr::now,
 				lt_count,
-				_data.starsConverted,
+				_data.convertStars,
 				lt_user,
 				Ui::Text::Bold(_parent->history()->peer->shortName()),
 				Ui::Text::RichLangValue)
@@ -89,7 +89,7 @@ TextWithEntities PremiumGift::subtitle() {
 				: tr::lng_action_gift_got_stars_text)(
 					tr::now,
 					lt_count,
-					_data.starsConverted,
+					_data.convertStars,
 					Ui::Text::RichLangValue);
 	}
 	const auto isCreditsPrize = creditsPrize();
@@ -149,10 +149,6 @@ rpl::producer<QString> PremiumGift::button() {
 		: (gift() && (outgoingGift() || !_data.unclaimed))
 		? tr::lng_sticker_premium_view()
 		: tr::lng_prize_open();
-}
-
-bool PremiumGift::buttonMinistars() {
-	return true;
 }
 
 ClickHandlerPtr PremiumGift::createViewLink() {

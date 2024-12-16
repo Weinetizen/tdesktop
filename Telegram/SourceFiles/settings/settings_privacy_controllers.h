@@ -194,7 +194,7 @@ public:
 
 };
 
-class ForwardsPrivacyController final
+class ForwardsPrivacyController
 	: public EditPrivacyController
 	, private HistoryView::SimpleElementDelegate {
 public:
@@ -337,24 +337,6 @@ public:
 		not_null<QWidget*> parent,
 		rpl::producer<Option> optionValue,
 		not_null<QWidget*> outerContainer) override;
-
-};
-
-class GiftsAutoSavePrivacyController final : public EditPrivacyController {
-public:
-	using Option = EditPrivacyBox::Option;
-	using Exception = EditPrivacyBox::Exception;
-
-	Key key() const override;
-
-	rpl::producer<QString> title() const override;
-	rpl::producer<QString> optionsTitleKey() const override;
-	rpl::producer<QString> exceptionButtonTextKey(
-		Exception exception) const override;
-	rpl::producer<QString> exceptionBoxTitle(
-		Exception exception) const override;
-	rpl::producer<QString> exceptionsDescription() const override;
-	bool allowMiniAppsToggle(Exception exception) const override;
 
 };
 

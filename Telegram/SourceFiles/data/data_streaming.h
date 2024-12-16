@@ -12,10 +12,12 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 class PhotoData;
 class DocumentData;
 
-namespace Media::Streaming {
+namespace Media {
+namespace Streaming {
 class Reader;
 class Document;
-} // namespace Media::Streaming
+} // namespace Streaming
+} // namespace Media
 
 namespace Data {
 
@@ -38,11 +40,6 @@ public:
 		bool forceRemoteLoader = false);
 	[[nodiscard]] std::shared_ptr<Document> sharedDocument(
 		not_null<DocumentData*> document,
-		FileOrigin origin);
-	[[nodiscard]] std::shared_ptr<Document> sharedDocument(
-		not_null<DocumentData*> quality,
-		not_null<DocumentData*> original,
-		HistoryItem *context,
 		FileOrigin origin);
 
 	[[nodiscard]] std::shared_ptr<Reader> sharedReader(
@@ -71,8 +68,6 @@ private:
 		base::flat_map<not_null<Data*>, std::weak_ptr<Document>> &documents,
 		base::flat_map<not_null<Data*>, std::weak_ptr<Reader>> &readers,
 		not_null<Data*> data,
-		DocumentData *original,
-		HistoryItem *context,
 		FileOrigin origin);
 
 	template <typename Data>

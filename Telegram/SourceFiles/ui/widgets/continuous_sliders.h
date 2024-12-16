@@ -156,8 +156,7 @@ public:
 			int valuesCount,
 			Convert &&convert,
 			Value current,
-			Progress &&progress,
-			int indexMin = 0) {
+			Progress &&progress) {
 		Expects(valuesCount > 1);
 
 		setAlwaysDisplayMarker(true);
@@ -172,15 +171,10 @@ public:
 			}
 		}
 		setAdjustCallback([=](float64 value) {
-			return std::max(
-				base::SafeRound(value * sectionsCount),
-				indexMin * 1.
-			) / sectionsCount;
+			return base::SafeRound(value * sectionsCount) / sectionsCount;
 		});
 		setChangeProgressCallback([=](float64 value) {
-			const auto index = std::max(
-				int(base::SafeRound(value * sectionsCount)),
-				indexMin);
+			const auto index = int(base::SafeRound(value * sectionsCount));
 			progress(convert(index));
 		});
 	}
@@ -199,19 +193,15 @@ public:
 			Convert &&convert,
 			Value current,
 			Progress &&progress,
-			Finished &&finished,
-			int indexMin = 0) {
+			Finished &&finished) {
 		setPseudoDiscrete(
 			valuesCount,
 			std::forward<Convert>(convert),
 			current,
-			std::forward<Progress>(progress),
-			indexMin);
+			std::forward<Progress>(progress));
 		setChangeFinishedCallback([=](float64 value) {
 			const auto sectionsCount = (valuesCount - 1);
-			const auto index = std::max(
-				int(base::SafeRound(value * sectionsCount)),
-				indexMin);
+			const auto index = int(base::SafeRound(value * sectionsCount));
 			finished(convert(index));
 		});
 	}

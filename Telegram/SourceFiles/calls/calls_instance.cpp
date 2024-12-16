@@ -669,8 +669,7 @@ bool Instance::inCall() const {
 		return false;
 	}
 	const auto state = _currentCall->state();
-	return (state != Call::State::Busy)
-		&& (state != Call::State::WaitingUserConfirmation);
+	return (state != Call::State::Busy);
 }
 
 bool Instance::inGroupCall() const {

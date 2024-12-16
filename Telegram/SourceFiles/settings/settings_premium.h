@@ -9,7 +9,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "settings/settings_type.h"
 
-class DocumentData;
 enum class PremiumFeature;
 
 namespace style {
@@ -108,14 +107,6 @@ void AddSummaryPremium(
 	not_null<Window::SessionController*> controller,
 	const QString &ref,
 	Fn<void(PremiumFeature)> buttonCallback);
-
-[[nodiscard]] std::unique_ptr<Ui::RpWidget> MakeEmojiStatusPreview(
-	not_null<QWidget*> parent,
-	not_null<DocumentData*> document);
-[[nodiscard]] std::unique_ptr<Ui::RpWidget> MakeEmojiSetStatusPreview(
-	not_null<QWidget*> parent,
-	not_null<PeerData*> peer,
-	not_null<DocumentData*> document);
 
 } // namespace Settings
 

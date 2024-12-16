@@ -16,10 +16,9 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_user_photos.h"
 #include "data/data_web_page.h"
 #include "data/data_cloud_themes.h" // Data::CloudTheme.
-#include "media/stories/media_stories_delegate.h"
 #include "media/view/media_view_playback_controls.h"
 #include "media/view/media_view_open_common.h"
-#include "media/media_common.h"
+#include "media/stories/media_stories_delegate.h"
 
 class History;
 
@@ -237,9 +236,6 @@ private:
 	void playbackControlsVolumeChangeFinished() override;
 	void playbackControlsSpeedChanged(float64 speed) override;
 	float64 playbackControlsCurrentSpeed(bool lastNonDefault) override;
-	std::vector<int> playbackControlsQualities() override;
-	VideoQuality playbackControlsCurrentQuality() override;
-	void playbackControlsQualityChanged(int quality) override;
 	void playbackControlsToFullScreen() override;
 	void playbackControlsFromFullScreen() override;
 	void playbackControlsToPictureInPicture() override;
@@ -319,11 +315,11 @@ private:
 	void checkForSaveLoaded();
 	void showPremiumDownloadPromo();
 
-	[[nodiscard]] Entity entityForUserPhotos(int index) const;
-	[[nodiscard]] Entity entityForSharedMedia(int index) const;
-	[[nodiscard]] Entity entityForCollage(int index) const;
-	[[nodiscard]] Entity entityByIndex(int index) const;
-	[[nodiscard]] Entity entityForItemId(const FullMsgId &itemId) const;
+	Entity entityForUserPhotos(int index) const;
+	Entity entityForSharedMedia(int index) const;
+	Entity entityForCollage(int index) const;
+	Entity entityByIndex(int index) const;
+	Entity entityForItemId(const FullMsgId &itemId) const;
 	bool moveToEntity(const Entity &entity, int preloadDelta = 0);
 
 	void setContext(std::variant<
@@ -339,23 +335,23 @@ private:
 	struct SharedMedia;
 	using SharedMediaType = SharedMediaWithLastSlice::Type;
 	using SharedMediaKey = SharedMediaWithLastSlice::Key;
-	[[nodiscard]] std::optional<SharedMediaType> sharedMediaType() const;
-	[[nodiscard]] std::optional<SharedMediaKey> sharedMediaKey() const;
-	[[nodiscard]] std::optional<SharedMediaType> computeOverviewType() const;
+	std::optional<SharedMediaType> sharedMediaType() const;
+	std::optional<SharedMediaKey> sharedMediaKey() const;
+	std::optional<SharedMediaType> computeOverviewType() const;
 	bool validSharedMedia() const;
 	void validateSharedMedia();
 	void handleSharedMediaUpdate(SharedMediaWithLastSlice &&update);
 
 	struct UserPhotos;
 	using UserPhotosKey = UserPhotosSlice::Key;
-	[[nodiscard]] std::optional<UserPhotosKey> userPhotosKey() const;
+	std::optional<UserPhotosKey> userPhotosKey() const;
 	bool validUserPhotos() const;
 	void validateUserPhotos();
 	void handleUserPhotosUpdate(UserPhotosSlice &&update);
 
 	struct Collage;
 	using CollageKey = WebPageCollage::Item;
-	[[nodiscard]] std::optional<CollageKey> collageKey() const;
+	std::optional<CollageKey> collageKey() const;
 	bool validCollage() const;
 	void validateCollage();
 
@@ -434,11 +430,11 @@ private:
 	void contentSizeChanged();
 
 	// Radial animation interface.
-	[[nodiscard]] float64 radialProgress() const;
-	[[nodiscard]] bool radialLoading() const;
-	[[nodiscard]] QRect radialRect() const;
+	float64 radialProgress() const;
+	bool radialLoading() const;
+	QRect radialRect() const;
 	void radialStart();
-	[[nodiscard]] crl::time radialTimeShift() const;
+	crl::time radialTimeShift() const;
 
 	void updateHeader();
 	void snapXY();
@@ -528,7 +524,6 @@ private:
 	void clearStreaming(bool savePosition = true);
 	[[nodiscard]] bool canInitStreaming() const;
 	[[nodiscard]] bool saveControlLocked() const;
-	void applyVideoQuality(VideoQuality value);
 
 	[[nodiscard]] bool topShadowOnTheRight() const;
 	void applyHideWindowWorkaround();
@@ -556,8 +551,6 @@ private:
 	rpl::lifetime _sessionLifetime;
 	PhotoData *_photo = nullptr;
 	DocumentData *_document = nullptr;
-	DocumentData *_chosenQuality = nullptr;
-	Media::VideoQuality _quality;
 	QString _documentLoadingTo;
 	std::shared_ptr<Data::PhotoMedia> _photoMedia;
 	std::shared_ptr<Data::DocumentMedia> _documentMedia;
@@ -632,13 +625,8 @@ private:
 
 	std::unique_ptr<Streamed> _streamed;
 	std::unique_ptr<PipWrap> _pip;
-	QImage _streamedQualityChangeFrame;
-	crl::time _streamedPosition = 0;
 	int _streamedCreated = 0;
-	bool _streamedQualityChangeFinished = false;
 	bool _showAsPip = false;
-
-	Qt::Orientations _flip;
 
 	std::unique_ptr<Stories::View> _stories;
 	std::shared_ptr<Show> _cachedShow;

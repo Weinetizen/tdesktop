@@ -7,12 +7,9 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #pragma once
 
+#include <rpl/variable.h>
+#include "ui/rp_widget.h"
 #include "info/info_wrap_widget.h"
-#include "info/statistics/info_statistics_tag.h"
-
-namespace Api {
-struct WhoReadList;
-} // namespace Api
 
 namespace Dialogs::Stories {
 struct Content;
@@ -51,11 +48,6 @@ enum class Tab;
 namespace Info::Statistics {
 struct Tag;
 } // namespace Info::Statistics
-
-namespace Info::BotStarRef {
-enum class Type : uchar;
-struct Tag;
-} // namespace Info::BotStarRef
 
 namespace Info {
 
@@ -196,15 +188,10 @@ public:
 	explicit ContentMemento(Downloads::Tag downloads);
 	explicit ContentMemento(Stories::Tag stories);
 	explicit ContentMemento(Statistics::Tag statistics);
-	explicit ContentMemento(BotStarRef::Tag starref);
 	ContentMemento(not_null<PollData*> poll, FullMsgId contextId)
 	: _poll(poll)
-	, _pollReactionsContextId(contextId) {
+	, _pollContextId(contextId) {
 	}
-	ContentMemento(
-		std::shared_ptr<Api::WhoReadList> whoReadIds,
-		FullMsgId contextId,
-		Data::ReactionId selected);
 
 	virtual object_ptr<ContentWidget> createWidget(
 		QWidget *parent,
@@ -229,29 +216,20 @@ public:
 	Stories::Tab storiesTab() const {
 		return _storiesTab;
 	}
-	Statistics::Tag statisticsTag() const {
-		return _statisticsTag;
+	PeerData *statisticsPeer() const {
+		return _statisticsPeer;
 	}
-	PeerData *starrefPeer() const {
-		return _starrefPeer;
+	FullMsgId statisticsContextId() const {
+		return _statisticsContextId;
 	}
-	BotStarRef::Type starrefType() const {
-		return _starrefType;
+	FullStoryId statisticsStoryId() const {
+		return _statisticsStoryId;
 	}
 	PollData *poll() const {
 		return _poll;
 	}
 	FullMsgId pollContextId() const {
-		return _poll ? _pollReactionsContextId : FullMsgId();
-	}
-	std::shared_ptr<Api::WhoReadList> reactionsWhoReadIds() const {
-		return _reactionsWhoReadIds;
-	}
-	Data::ReactionId reactionsSelected() const {
-		return _reactionsSelected;
-	}
-	FullMsgId reactionsContextId() const {
-		return _reactionsWhoReadIds ? _pollReactionsContextId : FullMsgId();
+		return _pollContextId;
 	}
 	Key key() const;
 
@@ -291,13 +269,11 @@ private:
 	UserData * const _settingsSelf = nullptr;
 	PeerData * const _storiesPeer = nullptr;
 	Stories::Tab _storiesTab = {};
-	Statistics::Tag _statisticsTag;
-	PeerData * const _starrefPeer = nullptr;
-	BotStarRef::Type _starrefType = {};
+	PeerData * const _statisticsPeer = nullptr;
+	const FullMsgId _statisticsContextId;
+	const FullStoryId _statisticsStoryId;
 	PollData * const _poll = nullptr;
-	std::shared_ptr<Api::WhoReadList> _reactionsWhoReadIds;
-	Data::ReactionId _reactionsSelected;
-	const FullMsgId _pollReactionsContextId;
+	const FullMsgId _pollContextId;
 
 	int _scrollTop = 0;
 	QString _searchFieldQuery;

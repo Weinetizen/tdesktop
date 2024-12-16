@@ -14,12 +14,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 namespace Media {
 namespace Streaming {
-namespace {
-
-constexpr auto kCheckStatsInterval = crl::time(1000);
-constexpr auto kInitialStatsWait = 5 * crl::time(1000);
-
-} // namespace
 
 LoaderMtproto::LoaderMtproto(
 	not_null<Storage::DownloadManagerMtproto*> owner,
@@ -28,8 +22,7 @@ LoaderMtproto::LoaderMtproto(
 	Data::FileOrigin origin)
 : DownloadMtprotoTask(owner, location, origin)
 , _size(size)
-, _api(&api().instance())
-, _statsTimer([=] { checkStats(); }) {
+, _api(&api().instance()) {
 }
 
 Storage::Cache::Key LoaderMtproto::baseCacheKey() const {
@@ -128,32 +121,12 @@ bool LoaderMtproto::readyToRequest() const {
 
 int64 LoaderMtproto::takeNextRequestOffset() {
 	const auto offset = _requested.take();
-	Assert(offset.has_value());
-
-	const auto time = crl::now();
-	if (!_firstRequestStart) {
-		_firstRequestStart = time;
-	}
-	_stats.push_back({ .start = crl::now(), .offset = *offset });
 
 	Ensures(offset.has_value());
 	return *offset;
 }
 
 bool LoaderMtproto::feedPart(int64 offset, const QByteArray &bytes) {
-	const auto time = crl::now();
-	for (auto &entry : _stats) {
-		if (entry.offset == offset && entry.start < time) {
-			entry.end = time;
-			if (!_statsTimer.isActive()) {
-				const auto checkAt = std::max(
-					time + kCheckStatsInterval,
-					_firstRequestStart + kInitialStatsWait);
-				_statsTimer.callOnce(checkAt - time);
-			}
-			break;
-		}
-	}
 	_parts.fire({ offset, bytes });
 	return true;
 }
@@ -164,57 +137,6 @@ void LoaderMtproto::cancelOnFail() {
 
 rpl::producer<LoadedPart> LoaderMtproto::parts() const {
 	return _parts.events();
-}
-
-rpl::producer<SpeedEstimate> LoaderMtproto::speedEstimate() const {
-	return _speedEstimate.events();
-}
-
-void LoaderMtproto::checkStats() {
-	const auto time = crl::now();
-	const auto from = time - kInitialStatsWait;
-	{ // Erase all stats entries that are too old.
-		for (auto i = begin(_stats); i != end(_stats);) {
-			if (i->start >= from) {
-				break;
-			} else if (i->end && i->end < from) {
-				i = _stats.erase(i);
-			} else {
-				++i;
-			}
-		}
-	}
-	if (_stats.empty()) {
-		return;
-	}
-	// Count duration for which at least one request was in progress.
-	// This is the time we should consider for download speed.
-	// We don't count time when no requests were in progress.
-	auto durationCountedTill = _stats.front().start;
-	auto duration = crl::time(0);
-	auto received = int64(0);
-	for (const auto &entry : _stats) {
-		if (entry.start > durationCountedTill) {
-			durationCountedTill = entry.start;
-		}
-		const auto till = entry.end ? entry.end : time;
-		if (till > durationCountedTill) {
-			duration += (till - durationCountedTill);
-			durationCountedTill = till;
-		}
-		if (entry.end) {
-			received += Storage::kDownloadPartSize;
-		}
-	}
-	if (duration) {
-		_speedEstimate.fire({
-			.bytesPerSecond = int(std::clamp(
-				int64(received * 1000 / duration),
-				int64(0),
-				int64(64 * 1024 * 1024))),
-			.unreliable = (received < 3 * Storage::kDownloadPartSize),
-		});
-	}
 }
 
 } // namespace Streaming

@@ -357,8 +357,6 @@ public:
 	virtual int peerListPartitionRows(Fn<bool(const PeerListRow &a)> border) = 0;
 	virtual std::shared_ptr<Main::SessionShow> peerListUiShow() = 0;
 
-	virtual void peerListSelectSkip(int direction) = 0;
-
 	virtual void peerListPressLeftToContextMenu(bool shown) = 0;
 	virtual bool peerListTrackRowPressFromGlobal(QPoint globalPosition) = 0;
 
@@ -575,13 +573,6 @@ public:
 		Unexpected("PeerListController::customRowRippleMaskGenerator.");
 	}
 
-	virtual bool overrideKeyboardNavigation(
-			int direction,
-			int fromIndex,
-			int toIndex) {
-		return false;
-	}
-
 	[[nodiscard]] rpl::lifetime &lifetime() {
 		return _lifetime;
 	}
@@ -657,8 +648,6 @@ public:
 
 	PeerListRowId updateFromParentDrag(QPoint globalPosition);
 	void dragLeft();
-
-	void setIgnoreHiddenRowsOnSearch(bool value);
 
 	// Interface for the controller.
 	void appendRow(std::unique_ptr<PeerListRow> row);
@@ -881,7 +870,6 @@ private:
 	int _aboveHeight = 0;
 	int _belowHeight = 0;
 	bool _hideEmpty = false;
-	bool _ignoreHiddenRowsOnSearch = false;
 	object_ptr<Ui::RpWidget> _aboveWidget = { nullptr };
 	object_ptr<Ui::RpWidget> _aboveSearchWidget = { nullptr };
 	object_ptr<Ui::RpWidget> _belowWidget = { nullptr };
@@ -1028,10 +1016,6 @@ public:
 		bool highlightRow,
 		Fn<void(not_null<Ui::PopupMenu*>)> destroyed = nullptr) override;
 
-	void peerListSelectSkip(int direction) override {
-		_content->selectSkip(direction);
-	}
-
 	void peerListPressLeftToContextMenu(bool shown) override {
 		_content->pressLeftToContextMenu(shown);
 	}
@@ -1105,7 +1089,6 @@ public:
 
 	[[nodiscard]] std::vector<PeerListRowId> collectSelectedIds();
 	[[nodiscard]] std::vector<not_null<PeerData*>> collectSelectedRows();
-	[[nodiscard]] rpl::producer<int> multiSelectHeightValue() const;
 
 	void peerListSetTitle(rpl::producer<QString> title) override {
 		setTitle(std::move(title));

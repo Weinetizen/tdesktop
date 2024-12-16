@@ -164,8 +164,7 @@ public:
 	void requestMessageData(PeerData *peer, MsgId msgId, Fn<void()> done);
 	QString exportDirectMessageLink(
 		not_null<HistoryItem*> item,
-		bool inRepliesContext,
-		bool forceNonPublicLink = false);
+		bool inRepliesContext);
 	QString exportDirectStoryLink(not_null<Data::Story*> item);
 
 	void requestContacts();
@@ -318,7 +317,6 @@ public:
 		QByteArray result,
 		VoiceWaveform waveform,
 		crl::time duration,
-		bool video,
 		const SendAction &action);
 	void sendFiles(
 		Ui::PreparedList &&list,
@@ -361,8 +359,7 @@ public:
 		not_null<UserData*> bot,
 		not_null<InlineBots::Result*> data,
 		const SendAction &action,
-		std::optional<MsgId> localMessageId,
-		Fn<void(bool)> done = nullptr);
+		std::optional<MsgId> localMessageId);
 	void sendMessageFail(
 		const MTP::Error &error,
 		not_null<PeerData*> peer,

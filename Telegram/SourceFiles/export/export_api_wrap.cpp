@@ -438,6 +438,8 @@ void ApiWrap::startExport(
 	}
 	if (_settings->types & Settings::Type::AnyChatsMask) {
 		_startProcess->steps.push_back(Step::SplitRanges);
+	}
+	if (_settings->types & Settings::Type::AnyChatsMask) {
 		_startProcess->steps.push_back(Step::DialogsCount);
 	}
 	if (_settings->types & Settings::Type::GroupsChannelsMask) {

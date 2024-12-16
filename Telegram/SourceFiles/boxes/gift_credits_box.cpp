@@ -122,10 +122,8 @@ void GiftCreditsBox(
 		Main::MakeSessionShow(box->uiShow(), &peer->session()),
 		box->verticalLayout(),
 		peer,
-		StarsAmount(),
-		[=] { gifted(); box->uiShow()->hideLayer(); },
-		tr::lng_credits_summary_options_subtitle(),
-		{});
+		0,
+		[=] { gifted(); box->uiShow()->hideLayer(); });
 
 	box->setPinnedToBottomContent(
 		object_ptr<Ui::VerticalLayout>(box));

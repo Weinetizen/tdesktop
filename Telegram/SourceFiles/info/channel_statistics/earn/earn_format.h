@@ -13,13 +13,6 @@ namespace Info::ChannelEarn {
 
 [[nodiscard]] QString MajorPart(Data::EarnInt value);
 [[nodiscard]] QString MinorPart(Data::EarnInt value);
-[[nodiscard]] QString ToUsd(
-	Data::EarnInt value,
-	float64 rate,
-	int afterFloat);
-[[nodiscard]] QString ToUsd(
-	StarsAmount value,
-	float64 rate,
-	int afterFloat);
+[[nodiscard]] QString ToUsd(Data::EarnInt value, float64 rate);
 
 } // namespace Info::ChannelEarn

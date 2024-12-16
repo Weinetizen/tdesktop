@@ -110,13 +110,7 @@ QSize MediaGeneric::countOptimalSize() {
 }
 
 QSize MediaGeneric::countCurrentSize(int newWidth) {
-	if (newWidth > maxWidth()) {
-		newWidth = maxWidth();
-	}
-	for (auto &entry : _entries) {
-		entry.object->resizeGetHeight(newWidth);
-	}
-	return { newWidth, minHeight() };
+	return { maxWidth(), minHeight() };
 }
 
 void MediaGeneric::draw(Painter &p, const PaintContext &context) const {

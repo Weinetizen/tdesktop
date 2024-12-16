@@ -134,7 +134,11 @@ void PreviewRow::rightActionPaint(
 		bool selected,
 		bool actionSelected) {
 	if (_actionRipple) {
-		_actionRipple->paint(p, x, y, outerWidth);
+		_actionRipple->paint(
+			p,
+			x,
+			y,
+			outerWidth);
 		if (_actionRipple->empty()) {
 			_actionRipple.reset();
 		}
@@ -146,8 +150,8 @@ void PreviewRow::rightActionPaint(
 }
 
 void PreviewRow::rightActionAddRipple(
-		QPoint point,
-		Fn<void()> updateCallback) {
+	QPoint point,
+	Fn<void()> updateCallback) {
 	if (!_actionRipple) {
 		auto mask = Ui::RippleAnimation::EllipseMask(rightActionSize());
 		_actionRipple = std::make_unique<Ui::RippleAnimation>(
@@ -222,9 +226,6 @@ Main::Session &PreviewController::session() const {
 
 [[nodiscard]] QString ExtractUsername(QString text) {
 	text = text.trimmed();
-	if (text.startsWith(QChar('@'))) {
-		return text.mid(1);
-	}
 	static const auto expression = QRegularExpression(
 		"^(https://)?([a-zA-Z0-9\\.]+/)?([a-zA-Z0-9_\\.]+)");
 	const auto match = expression.match(text);
@@ -272,9 +273,7 @@ Main::Session &PreviewController::session() const {
 
 			const auto requestId = result.make_state<mtpRequestId>();
 			*requestId = session->api().request(MTPcontacts_ResolveUsername(
-				MTP_flags(0),
-				MTP_string(extracted),
-				MTP_string()
+				MTP_string(extracted)
 			)).done([=](const MTPcontacts_ResolvedPeer &result) {
 				const auto &data = result.data();
 				session->data().processUsers(data.vusers());

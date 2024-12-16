@@ -31,7 +31,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/widgets/shadow.h"
 #include "ui/widgets/scroll_area.h"
 #include "ui/painter.h"
-#include "ui/ui_utility.h"
 #include "window/window_session_controller.h"
 #include "styles/style_boxes.h"
 #include "styles/style_chat.h"
@@ -390,9 +389,7 @@ rpl::producer<not_null<QKeyEvent*>> TopBar::keyEvents() const {
 }
 
 void TopBar::setInnerFocus() {
-	if (Ui::AppInFocus() && Ui::InFocusChain(_select->window())) {
-		_select->setInnerFocus();
-	}
+	_select->setInnerFocus();
 }
 
 void TopBar::updateSize() {
@@ -1035,9 +1032,7 @@ ComposeSearch::Inner::Inner(
 }
 
 void ComposeSearch::Inner::setInnerFocus() {
-	if (Ui::AppInFocus() && Ui::InFocusChain(_topBar->window())) {
-		_topBar->setInnerFocus();
-	}
+	_topBar->setInnerFocus();
 }
 
 void ComposeSearch::Inner::setQuery(const QString &query) {

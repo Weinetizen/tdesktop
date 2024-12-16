@@ -34,10 +34,14 @@ constexpr auto kPerPage = 50;
 		not_null<UserData*> to,
 		const Api::UserStarGift &gift) {
 	return GiftTypeStars{
-		.info = gift.info,
+		.id = gift.gift.id,
+		.stars = gift.gift.stars,
+		.convertStars = gift.gift.convertStars,
+		.document = gift.gift.document,
 		.from = ((gift.anonymous || !gift.fromId)
 			? nullptr
 			: to->owner().peer(gift.fromId).get()),
+		.limitedCount = gift.gift.limitedCount,
 		.userpic = true,
 		.hidden = gift.hidden,
 		.mine = to->isSelf(),

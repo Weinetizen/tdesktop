@@ -329,10 +329,7 @@ void SublistWidget::setInternalState(
 	restoreState(memento);
 }
 
-bool SublistWidget::searchInChatEmbedded(
-		QString query,
-		Dialogs::Key chat,
-		PeerData *searchFrom) {
+bool SublistWidget::searchInChatEmbedded(Dialogs::Key chat, QString query) {
 	const auto sublist = chat.sublist();
 	if (!sublist || sublist != _sublist) {
 		return false;

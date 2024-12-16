@@ -13,7 +13,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_poll.h"
 #include "ui/ui_utility.h"
 
-namespace Info::Polls {
+namespace Info {
+namespace Polls {
 
 Memento::Memento(not_null<PollData*> poll, FullMsgId contextId)
 : ContentMemento(poll, contextId) {
@@ -112,4 +113,5 @@ void Widget::restoreState(not_null<Memento*> memento) {
 	scrollTopRestore(memento->scrollTop());
 }
 
-} // namespace Info::Polls
+} // namespace Polls
+} // namespace Info

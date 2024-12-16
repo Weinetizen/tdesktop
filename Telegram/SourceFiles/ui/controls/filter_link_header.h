@@ -29,7 +29,6 @@ struct FilterLinkHeaderDescriptor {
 	base::required<QString> folderTitle;
 	not_null<const style::icon*> folderIcon;
 	rpl::producer<int> badge;
-	bool horizontalFilters = false;
 };
 
 struct FilterLinkHeader {

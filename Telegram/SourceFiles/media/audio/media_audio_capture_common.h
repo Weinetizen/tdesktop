@@ -12,8 +12,7 @@ namespace Media::Capture {
 struct Result {
 	QByteArray bytes;
 	VoiceWaveform waveform;
-	crl::time duration;
-	bool video = false;
+	int samples = 0;
 };
 
 } // namespace Media::Capture

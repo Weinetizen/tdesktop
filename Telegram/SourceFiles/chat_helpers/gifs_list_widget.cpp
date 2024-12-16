@@ -899,9 +899,7 @@ void GifsListWidget::searchForGifs(const QString &query) {
 	if (!_searchBot && !_searchBotRequestId) {
 		const auto username = session().serverConfig().gifSearchUsername;
 		_searchBotRequestId = _api.request(MTPcontacts_ResolveUsername(
-			MTP_flags(0),
-			MTP_string(username),
-			MTP_string()
+			MTP_string(username)
 		)).done([=](const MTPcontacts_ResolvedPeer &result) {
 			auto &data = result.data();
 			session().data().processUsers(data.vusers());

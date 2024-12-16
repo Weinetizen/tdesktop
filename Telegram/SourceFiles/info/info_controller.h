@@ -7,14 +7,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #pragma once
 
-#include "data/data_message_reaction_id.h"
 #include "data/data_search_controller.h"
-#include "info/statistics/info_statistics_tag.h"
 #include "window/window_session_controller.h"
-
-namespace Api {
-struct WhoReadList;
-} // namespace Api
 
 namespace Data {
 class ForumTopic;
@@ -61,21 +55,24 @@ struct Tag {
 
 } // namespace Info::Stories
 
-namespace Info::BotStarRef {
+namespace Info::Statistics {
 
-enum class Type : uchar {
-	Setup,
-	Join,
-};
 struct Tag {
-	Tag(not_null<PeerData*> peer, Type type) : peer(peer), type(type) {
+	explicit Tag(
+		not_null<PeerData*> peer,
+		FullMsgId contextId,
+		FullStoryId storyId)
+	: peer(peer)
+	, contextId(contextId)
+	, storyId(storyId) {
 	}
 
 	not_null<PeerData*> peer;
-	Type type = {};
+	FullMsgId contextId;
+	FullStoryId storyId;
 };
 
-} // namespace Info::BotStarRef
+} // namespace Info::Statistics
 
 namespace Info {
 
@@ -87,12 +84,7 @@ public:
 	Key(Downloads::Tag downloads);
 	Key(Stories::Tag stories);
 	Key(Statistics::Tag statistics);
-	Key(BotStarRef::Tag starref);
 	Key(not_null<PollData*> poll, FullMsgId contextId);
-	Key(
-		std::shared_ptr<Api::WhoReadList> whoReadIds,
-		Data::ReactionId selected,
-		FullMsgId contextId);
 
 	PeerData *peer() const;
 	Data::ForumTopic *topic() const;
@@ -100,23 +92,15 @@ public:
 	bool isDownloads() const;
 	PeerData *storiesPeer() const;
 	Stories::Tab storiesTab() const;
-	Statistics::Tag statisticsTag() const;
-	PeerData *starrefPeer() const;
-	BotStarRef::Type starrefType() const;
+	PeerData *statisticsPeer() const;
+	FullMsgId statisticsContextId() const;
+	FullStoryId statisticsStoryId() const;
 	PollData *poll() const;
 	FullMsgId pollContextId() const;
-	std::shared_ptr<Api::WhoReadList> reactionsWhoReadIds() const;
-	Data::ReactionId reactionsSelected() const;
-	FullMsgId reactionsContextId() const;
 
 private:
 	struct PollKey {
 		not_null<PollData*> poll;
-		FullMsgId contextId;
-	};
-	struct ReactionsKey {
-		std::shared_ptr<Api::WhoReadList> whoReadIds;
-		Data::ReactionId selected;
 		FullMsgId contextId;
 	};
 	std::variant<
@@ -126,9 +110,7 @@ private:
 		Downloads::Tag,
 		Stories::Tag,
 		Statistics::Tag,
-		BotStarRef::Tag,
-		PollKey,
-		ReactionsKey> _value;
+		PollKey> _value;
 
 };
 
@@ -144,8 +126,6 @@ public:
 		Media,
 		CommonGroups,
 		SimilarChannels,
-		RequestsList,
-		ReactionsList,
 		SavedSublists,
 		PeerGifts,
 		Members,
@@ -154,7 +134,6 @@ public:
 		Stories,
 		PollResults,
 		Statistics,
-		BotStarRef,
 		Boosts,
 		ChannelEarn,
 		BotEarn,
@@ -220,23 +199,19 @@ public:
 	[[nodiscard]] Stories::Tab storiesTab() const {
 		return key().storiesTab();
 	}
-	[[nodiscard]] Statistics::Tag statisticsTag() const {
-		return key().statisticsTag();
+	[[nodiscard]] PeerData *statisticsPeer() const {
+		return key().statisticsPeer();
 	}
-	[[nodiscard]] PeerData *starrefPeer() const {
-		return key().starrefPeer();
+	[[nodiscard]] FullMsgId statisticsContextId() const {
+		return key().statisticsContextId();
 	}
-	[[nodiscard]] BotStarRef::Type starrefType() const {
-		return key().starrefType();
+	[[nodiscard]] FullStoryId statisticsStoryId() const {
+		return key().statisticsStoryId();
 	}
 	[[nodiscard]] PollData *poll() const;
 	[[nodiscard]] FullMsgId pollContextId() const {
 		return key().pollContextId();
 	}
-	[[nodiscard]] auto reactionsWhoReadIds() const
-		-> std::shared_ptr<Api::WhoReadList>;
-	[[nodiscard]] Data::ReactionId reactionsSelected() const;
-	[[nodiscard]] FullMsgId reactionsContextId() const;
 
 	virtual void setSearchEnabledByContent(bool enabled) {
 	}

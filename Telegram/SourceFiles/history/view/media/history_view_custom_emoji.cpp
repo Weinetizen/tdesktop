@@ -108,9 +108,6 @@ CustomEmoji::CustomEmoji(
 }
 
 void CustomEmoji::customEmojiResolveDone(not_null<DocumentData*> document) {
-	if (!document->sticker()) {
-		return;
-	}
 	_resolving = false;
 	const auto id = document->id;
 	for (auto &line : _lines) {

@@ -183,13 +183,10 @@ PointDetailsWidget::PointDetailsWidget(
 			for (const auto &value : _chartData.lines.front().y) {
 				const auto valueText = Ui::Text::String(
 					_textStyle,
-					Lang::FormatExactCountDecimal(value / multiplier));
+					QString::number(value / multiplier));
 				const auto usdText = Ui::Text::String(
 					_textStyle,
-					Info::ChannelEarn::ToUsd(
-						value,
-						_chartData.currencyRate,
-						0));
+					Info::ChannelEarn::ToUsd(value, _chartData.currencyRate));
 				const auto width = std::max(
 					usdText.maxWidth(),
 					valueText.maxWidth());
@@ -345,8 +342,7 @@ void PointDetailsWidget::setXIndex(int xIndex) {
 					tr::now));
 			copy.value.setText(
 				_textStyle,
-				Lang::FormatExactCountDecimal(
-					dataLine.y[xIndex] / multiplier));
+				QString::number(dataLine.y[xIndex] / multiplier));
 			_lines.push_back(std::move(copy));
 			textLine.name.setText(
 				_textStyle,
@@ -355,7 +351,7 @@ void PointDetailsWidget::setXIndex(int xIndex) {
 				_textStyle,
 				Info::ChannelEarn::ToUsd(
 					dataLine.y[xIndex],
-					_chartData.currencyRate, 0));
+					_chartData.currencyRate));
 		}
 		_lines.push_back(std::move(textLine));
 	}

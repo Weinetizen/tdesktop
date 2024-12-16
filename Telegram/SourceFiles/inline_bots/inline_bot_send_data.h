@@ -40,7 +40,7 @@ public:
 
 	virtual bool isValid() const = 0;
 
-	virtual not_null<HistoryItem*> makeMessage(
+	virtual void addToHistory(
 		const Result *owner,
 		not_null<History*> history,
 		HistoryItemCommonFields &&fields) const = 0;
@@ -75,7 +75,7 @@ public:
 	};
 	virtual SentMessageFields getSentMessageFields() const = 0;
 
-	not_null<HistoryItem*> makeMessage(
+	void addToHistory(
 		const Result *owner,
 		not_null<History*> history,
 		HistoryItemCommonFields &&fields) const override;
@@ -236,7 +236,7 @@ public:
 		return _photo != nullptr;
 	}
 
-	not_null<HistoryItem*> makeMessage(
+	void addToHistory(
 		const Result *owner,
 		not_null<History*> history,
 		HistoryItemCommonFields &&fields) const override;
@@ -270,7 +270,7 @@ public:
 		return _document != nullptr;
 	}
 
-	not_null<HistoryItem*> makeMessage(
+	void addToHistory(
 		const Result *owner,
 		not_null<History*> history,
 		HistoryItemCommonFields &&fields) const override;
@@ -298,7 +298,7 @@ public:
 		return _game != nullptr;
 	}
 
-	not_null<HistoryItem*> makeMessage(
+	void addToHistory(
 		const Result *owner,
 		not_null<History*> history,
 		HistoryItemCommonFields &&fields) const override;

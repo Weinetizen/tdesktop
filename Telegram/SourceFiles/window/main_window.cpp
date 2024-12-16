@@ -566,6 +566,11 @@ void MainWindow::updatePalette() {
 
 int MainWindow::computeMinWidth() const {
 	auto result = st::windowMinWidth;
+	if (const auto session = _controller->sessionController()) {
+		if (const auto add = session->filtersWidth()) {
+			result += add;
+		}
+	}
 	if (_rightColumn) {
 		result += _rightColumn->width();
 	}
@@ -864,7 +869,7 @@ void MainWindow::updateTitle() {
 		: Dialogs::Key();
 	const auto thread = key ? key.thread() : nullptr;
 	if (!thread) {
-		setTitle((user.isEmpty() ? u"Telegram"_q : user) + added);
+		setTitle((user.isEmpty() ? u"Teamgram"_q : user) + added);
 		return;
 	}
 	const auto history = thread->owningHistory();

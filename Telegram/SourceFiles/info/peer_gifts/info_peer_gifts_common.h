@@ -7,9 +7,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #pragma once
 
-#include "api/api_premium.h"
 #include "ui/abstract_button.h"
-#include "ui/effects/premium_stars_colored.h"
 #include "ui/text/text.h"
 
 class StickerPremiumMark;
@@ -44,8 +42,13 @@ struct GiftTypePremium {
 };
 
 struct GiftTypeStars {
-	Api::StarGift info;
+	uint64 id = 0;
+	int64 stars = 0;
+	int64 convertStars = 0;
+	DocumentData *document = nullptr;
 	PeerData *from = nullptr;
+	int limitedCount = 0;
+	int limitedLeft = 0;
 	bool userpic = false;
 	bool hidden = false;
 	bool mine = false;
@@ -98,7 +101,6 @@ private:
 	Ui::Text::String _text;
 	Ui::Text::String _price;
 	std::shared_ptr<Ui::DynamicImage> _userpic;
-	Ui::Premium::ColoredMiniStars _stars;
 	bool _subscribed = false;
 
 	QRect _button;

@@ -250,6 +250,7 @@ DocumentData *Sticker::document() {
 
 void Sticker::stickerClearLoopPlayed() {
 	_oncePlayed = false;
+	_premiumEffectPlayed = false;
 	_premiumEffectSkipped = false;
 }
 

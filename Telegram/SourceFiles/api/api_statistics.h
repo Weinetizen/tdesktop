@@ -79,9 +79,9 @@ private:
 
 };
 
-class EarnStatistics final : public StatisticsRequestSender {
+class ChannelEarnStatistics final : public StatisticsRequestSender {
 public:
-	explicit EarnStatistics(not_null<PeerData*> peer);
+	explicit ChannelEarnStatistics(not_null<ChannelData*> channel);
 
 	[[nodiscard]] rpl::producer<rpl::no_value, QString> request();
 	void requestHistory(
@@ -94,7 +94,6 @@ public:
 	static constexpr auto kLimit = int(10);
 
 private:
-	const bool _isUser = false;
 	Data::EarnStatistics _data;
 
 	mtpRequestId _requestId = 0;

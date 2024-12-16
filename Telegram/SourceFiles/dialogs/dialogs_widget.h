@@ -75,7 +75,7 @@ class FakeRow;
 class Key;
 struct ChosenRow;
 class InnerWidget;
-struct SearchRequestType;
+enum class SearchRequestType : uchar;
 enum class SearchRequestDelay : uchar;
 class Suggestions;
 class ChatSearchIn;
@@ -129,7 +129,6 @@ public:
 	[[nodiscard]] RowDescriptor resolveChatNext(RowDescriptor from = {}) const;
 	[[nodiscard]] RowDescriptor resolveChatPrevious(RowDescriptor from = {}) const;
 	void updateHasFocus(not_null<QWidget*> focused);
-	void toggleFiltersMenu(bool value);
 
 	// Float player interface.
 	bool floatPlayerHandleWheelEvent(QEvent *e) override;
@@ -152,26 +151,10 @@ protected:
 	void paintEvent(QPaintEvent *e) override;
 
 private:
-	struct SearchProcessState {
-		base::flat_map<QString, MTPmessages_Messages> cache;
-		base::flat_map<mtpRequestId, QString> queries;
-
-		PeerData *lastPeer = nullptr;
-		MsgId lastId = 0;
-		int32 nextRate = 0;
-		mtpRequestId requestId = 0;
-		bool full = false;
-	};
-
 	void chosenRow(const ChosenRow &row);
 	void listScrollUpdated();
 	void searchCursorMoved();
 	void completeHashtag(QString tag);
-	void requestPublicPosts(bool fromStart);
-	void requestMessages(bool fromStart);
-	[[nodiscard]] not_null<SearchProcessState*> currentSearchProcess();
-
-	[[nodiscard]] bool computeSearchWithPostsPreview() const;
 
 	[[nodiscard]] QString currentSearchQuery() const;
 	[[nodiscard]] int currentSearchQueryCursorPosition() const;
@@ -185,8 +168,7 @@ private:
 	void searchReceived(
 		SearchRequestType type,
 		const MTPmessages_Messages &result,
-		not_null<SearchProcessState*> process,
-		bool cacheResults = false);
+		mtpRequestId requestId);
 	void peerSearchReceived(
 		const MTPcontacts_Found &result,
 		mtpRequestId requestId);
@@ -219,7 +201,7 @@ private:
 	void showCalendar();
 	void showSearchFrom();
 	void showMainMenu();
-	void clearSearchCache(bool clearPosts);
+	void clearSearchCache();
 	void setSearchQuery(const QString &query, int cursorPosition = -1);
 	void updateControlsVisibility(bool fast = false);
 	void updateLockUnlockVisibility(
@@ -262,11 +244,9 @@ private:
 	void searchFailed(
 		SearchRequestType type,
 		const MTP::Error &error,
-		not_null<SearchProcessState*> process);
+		mtpRequestId requestId);
 	void peerSearchFailed(const MTP::Error &error, mtpRequestId requestId);
-	void searchApplyEmpty(
-		SearchRequestType type,
-		not_null<SearchProcessState*> process);
+	void searchApplyEmpty(SearchRequestType type, mtpRequestId id);
 	void peerSearchApplyEmpty(mtpRequestId id);
 
 	void updateForceDisplayWide();
@@ -296,7 +276,7 @@ private:
 	bool _dragForward = false;
 	base::Timer _chooseByDragTimer;
 
-	const Layout _layout = Layout::Main;
+	Layout _layout = Layout::Main;
 	int _narrowWidth = 0;
 	object_ptr<Ui::RpWidget> _searchControls;
 	object_ptr<HistoryView::TopBarWidget> _subsectionTopBar = { nullptr };
@@ -318,8 +298,6 @@ private:
 	std::unique_ptr<Ui::RequestsBar> _forumRequestsBar;
 	std::unique_ptr<HistoryView::ContactStatus> _forumReportBar;
 
-	base::unique_qptr<Ui::RpWidget> _chatFilters;
-
 	object_ptr<Ui::ElasticScroll> _scroll;
 	QPointer<InnerWidget> _inner;
 	std::unique_ptr<Suggestions> _suggestions;
@@ -340,7 +318,6 @@ private:
 	bool _scrollToTopIsShown = false;
 	bool _forumSearchRequested = false;
 	HashOrCashtag _searchHashOrCashtag = {};
-	bool _searchWithPostsPreview = false;
 
 	Data::Folder *_openedFolder = nullptr;
 	Data::Forum *_openedForum = nullptr;
@@ -381,13 +358,19 @@ private:
 	PeerData *_searchQueryFrom = nullptr;
 	std::vector<Data::ReactionId> _searchQueryTags;
 	ChatSearchTab _searchQueryTab = {};
+	int32 _searchNextRate = 0;
+	bool _searchFull = false;
+	bool _searchFullMigrated = false;
+	int _searchInHistoryRequest = 0; // Not real mtpRequestId.
+	mtpRequestId _searchRequest = 0;
 
-	SearchProcessState _searchProcess;
-	SearchProcessState _migratedProcess;
-	SearchProcessState _postsProcess;
-	int _historiesRequest = 0; // Not real mtpRequestId.
+	PeerData *_lastSearchPeer = nullptr;
+	MsgId _lastSearchId = 0;
+	MsgId _lastSearchMigratedId = 0;
 
+	base::flat_map<QString, MTPmessages_Messages> _searchCache;
 	Api::SingleMessageSearch _singleMessageSearch;
+	base::flat_map<mtpRequestId, QString> _searchQueries;
 	base::flat_map<QString, MTPcontacts_Found> _peerSearchCache;
 	base::flat_map<mtpRequestId, QString> _peerSearchQueries;
 

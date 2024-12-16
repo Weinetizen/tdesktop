@@ -119,7 +119,6 @@ uint8 ContactColorIndex(const ContactInfo &data);
 struct Photo {
 	uint64 id = 0;
 	TimeId date = 0;
-	bool spoilered = false;
 
 	Image image;
 };
@@ -147,7 +146,6 @@ struct Document {
 	bool isVoiceMessage = false;
 	bool isVideoFile = false;
 	bool isAudioFile = false;
-	bool spoilered = false;
 };
 
 struct SharedContact {

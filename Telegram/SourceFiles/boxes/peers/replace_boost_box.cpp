@@ -202,11 +202,10 @@ void Controller::prepare() {
 	const auto session = &_to->session();
 	auto above = object_ptr<Ui::VerticalLayout>((QWidget*)nullptr);
 	above->add(
-		CreateUserpicsTransfer(
+		CreateBoostReplaceUserpics(
 			above.data(),
 			_selectedPeers.value(),
-			_to,
-			UserpicsTransferType::BoostReplace),
+			_to),
 		st::boxRowPadding + st::boostReplaceUserpicsPadding);
 	above->add(
 		object_ptr<Ui::FlatLabel>(
@@ -367,11 +366,10 @@ object_ptr<Ui::BoxContent> ReassignBoostSingleBox(
 		});
 		box->verticalLayout()->insert(
 			0,
-			CreateUserpicsTransfer(
+			CreateBoostReplaceUserpics(
 				box,
 				rpl::single(std::vector{ peer }),
-				to,
-				UserpicsTransferType::BoostReplace),
+				to),
 			st::boxRowPadding + st::boostReplaceUserpicsPadding);
 	});
 
@@ -538,11 +536,10 @@ object_ptr<Ui::BoxContent> ReassignBoostsBox(
 	return Box<PeerListBox>(std::move(controller), std::move(initBox));
 }
 
-object_ptr<Ui::RpWidget> CreateUserpicsTransfer(
+object_ptr<Ui::RpWidget> CreateBoostReplaceUserpics(
 		not_null<Ui::RpWidget*> parent,
 		rpl::producer<std::vector<not_null<PeerData*>>> from,
-		not_null<PeerData*> to,
-		UserpicsTransferType type) {
+		not_null<PeerData*> to) {
 	struct State {
 		std::vector<not_null<PeerData*>> from;
 		std::vector<std::unique_ptr<Ui::UserpicButton>> buttons;
@@ -643,18 +640,13 @@ object_ptr<Ui::RpWidget> CreateUserpicsTransfer(
 			button->render(&q, position, QRegion(), QWidget::DrawChildren);
 		}
 		state->painting = false;
-		const auto boosting = (type == UserpicsTransferType::BoostReplace);
 		const auto last = state->buttons.back().get();
-		const auto back = boosting ? last : right;
 		const auto add = st::boostReplaceIconAdd;
-		const auto &icon = boosting
-			? st::boostReplaceIcon
-			: st::starrefJoinIcon;
-		const auto skip = boosting ? st::boostReplaceIconSkip : 0;
-		const auto w = icon.width() + 2 * skip;
-		const auto h = icon.height() + 2 * skip;
-		const auto x = back->x() + back->width() - w + add.x();
-		const auto y = back->y() + back->height() - h + add.y();
+		const auto skip = st::boostReplaceIconSkip;
+		const auto w = st::boostReplaceIcon.width() + 2 * skip;
+		const auto h = st::boostReplaceIcon.height() + 2 * skip;
+		const auto x = last->x() + last->width() - w + add.x();
+		const auto y = last->y() + last->height() - h + add.y();
 
 		auto brush = QLinearGradient(QPointF(x + w, y + h), QPointF(x, y));
 		brush.setStops(Ui::Premium::ButtonGradientStops());
@@ -662,7 +654,7 @@ object_ptr<Ui::RpWidget> CreateUserpicsTransfer(
 		pen.setWidthF(stroke);
 		q.setPen(pen);
 		q.drawEllipse(x - half, y - half, w + stroke, h + stroke);
-		icon.paint(q, x + skip, y + skip, outerw);
+		st::boostReplaceIcon.paint(q, x + skip, y + skip, outerw);
 
 		const auto size = st::boostReplaceArrow.size();
 		st::boostReplaceArrow.paint(

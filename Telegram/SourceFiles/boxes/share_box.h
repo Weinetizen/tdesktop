@@ -174,8 +174,6 @@ private:
 	bool _peopleFull = false;
 	mtpRequestId _peopleRequest = 0;
 
-	RpWidget *_chatsFilters = nullptr;
-
 	using PeopleCache = QMap<QString, MTPcontacts_Found>;
 	PeopleCache _peopleCache;
 
